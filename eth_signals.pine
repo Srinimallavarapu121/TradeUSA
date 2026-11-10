@@ -1,0 +1,47 @@
+// This Pine Script™ is subject to the Terms of Use at https://www.tradingview.com/pine-script-docs/
+// Educational tool only — NOT financial advice or a prediction system.
+
+//@version=5
+indicator("ETH Buy/Sell Signals (Volume + Price)", overlay=true)
+
+// --- Inputs ---
+emaFastLen  = input.int(9,  "Fast EMA Length")
+emaSlowLen  = input.int(21, "Slow EMA Length")
+rsiLen      = input.int(14, "RSI Length")
+volAvgLen   = input.int(20, "Volume MA Length")
+
+// --- EMAs ---
+emaFast = ta.ema(close, emaFastLen)
+emaSlow = ta.ema(close, emaSlowLen)
+
+plot(emaFast, "EMA 9",  color=color.orange, linewidth=1)
+plot(emaSlow, "EMA 21", color=color.blue,   linewidth=1)
+
+// --- VWAP (intraday only — resets each session) ---
+plot(ta.vwap, "VWAP", color=color.purple, linewidth=1, style=plot.style_line)
+
+// --- RSI (separate pane) ---
+rsiVal = ta.rsi(close, rsiLen)
+
+// --- Volume-based buy/sell signals ---
+priceUp    = close > open
+priceDown  = close < open
+volMA      = ta.sma(volume, volAvgLen)
+highVol    = volume > volMA
+lowVol     = volume < volMA
+
+buySignal  = highVol and priceUp
+sellSignal = lowVol  and priceDown
+
+plotshape(buySignal,  title="BUY",  text="BUY",  style=shape.triangleup,
+     location=location.belowbar, color=color.green, textcolor=color.green, size=size.small)
+plotshape(sellSignal, title="SELL", text="SELL", style=shape.triangledown,
+     location=location.abovebar, color=color.red,   textcolor=color.red,   size=size.small)
+
+// --- Alerts ---
+alertcondition(buySignal,  title="BUY Signal",  message="ETH BUY: High volume + positive candle")
+alertcondition(sellSignal, title="SELL Signal", message="ETH SELL: Low volume + negative candle")
+
+// --- Background highlight on signals ---
+bgcolor(buySignal  ? color.new(color.green, 90) : na)
+bgcolor(sellSignal ? color.new(color.red,   90) : na)

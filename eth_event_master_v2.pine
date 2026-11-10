@@ -1,0 +1,465 @@
+// This Pine Script™ is subject to the Terms of Use at https://www.tradingview.com/pine-script-docs/
+// Educational tool only — NOT financial advice or a prediction system.
+
+//@version=6
+indicator("ETH EVENT MASTER v2", overlay=true, max_labels_count=500, max_boxes_count=500)
+
+//====================================================
+// INPUTS
+//====================================================
+
+// ---------- CORE ----------
+showSignals        = input.bool(true,  "Show Buy/Sell Labels",   group="Core")
+showVWAP           = input.bool(true,  "Show VWAP",             group="Core")
+showBarColors      = input.bool(true,  "Show Candle Colors",    group="Core")
+showDashboard      = input.bool(true,  "Show Dashboard",        group="Core")
+showTrailStop      = input.bool(true,  "Show UT Trail Stop",    group="Core")
+
+// ---------- OVERLAYS ----------
+showEMAs           = input.bool(true,  "Show EMAs",             group="Overlays")
+showSMA200         = input.bool(false, "Show SMA 200",          group="Overlays")
+showBB             = input.bool(false, "Show Bollinger Bands",  group="Overlays")
+showTPDots         = input.bool(true,  "Show RSI TP Dots",      group="Overlays")
+
+// ---------- EMA / SMA ----------
+fastEMA            = input.int(9,   "Fast EMA",    group="Moving Averages")
+slowEMA            = input.int(21,  "Slow EMA",    group="Moving Averages")
+smaLen             = input.int(200, "SMA Length",   group="Moving Averages")
+
+// ---------- BB ----------
+bbLen              = input.int(20,   "BB Length",   group="Bollinger Bands")
+bbMult             = input.float(2.0,"BB Mult",     group="Bollinger Bands")
+
+// ---------- RSI ----------
+rsiLen             = input.int(14, "RSI Length",     group="RSI")
+rsiOB              = input.int(70, "RSI Overbought", group="RSI")
+rsiOS              = input.int(30, "RSI Oversold",   group="RSI")
+extremeOB          = input.int(80, "Extreme OB",     group="RSI")
+extremeOS          = input.int(20, "Extreme OS",     group="RSI")
+
+// ---------- STOCH RSI ----------
+stochLen           = input.int(14, "Stoch RSI Length", group="Stoch RSI")
+kLen               = input.int(3,  "K Length",         group="Stoch RSI")
+dLen               = input.int(3,  "D Length",         group="Stoch RSI")
+
+// ---------- VOLUME ----------
+volLen             = input.int(20,    "Volume MA Length",  group="Volume")
+volMult            = input.float(1.2, "Volume Multiplier", group="Volume")
+showVolNumbers     = input.bool(true,  "Show Volume Numbers on Bars", group="Volume")
+volLabelSize       = input.string(size.tiny, "Volume Label Size", options=[size.tiny, size.small, size.normal], group="Volume")
+showVolBigDash     = input.bool(true,  "Show Big Volume Number (dashboard)", group="Volume")
+volBigSize         = input.string(size.huge, "Big Volume Font Size", options=[size.normal, size.large, size.huge], group="Volume")
+
+// ---------- UT BOT (tuned for crypto) ----------
+utA                = input.float(2.0, "UT Sensitivity",  group="UT Bot")
+utATR              = input.int(10,    "UT ATR Period",    group="UT Bot")
+
+// ---------- FILTERS ----------
+useTrendFilter     = input.bool(false, "Use Trend Filter",  group="Filters")
+useVolumeFilter    = input.bool(false, "Use Volume Filter",  group="Filters")
+useStochFilter     = input.bool(false, "Use Stoch Filter",   group="Filters")
+
+// ---------- SESSIONS ----------
+showSessionBoxes   = input.bool(true,  "Show Session Boxes",  group="Sessions")
+showAsiaBox        = input.bool(true,  "Show Asia Box",       group="Sessions")
+showLondonBox      = input.bool(true,  "Show London Box",     group="Sessions")
+showNYBox          = input.bool(true,  "Show New York Box",   group="Sessions")
+asiaSession        = input.session("1700-0000", "Asia Session",   group="Sessions")
+londonSession      = input.session("0100-0500", "London Session", group="Sessions")
+nySession          = input.session("0630-0930", "NY Session",     group="Sessions")
+sessionTZ          = input.string("America/Los_Angeles", "Timezone", group="Sessions")
+asiaColor          = input.color(color.blue,   "Asia Color",   group="Sessions")
+londonColor        = input.color(color.orange, "London Color", group="Sessions")
+nyColor            = input.color(color.green,  "NY Color",     group="Sessions")
+sessionLineW       = input.int(2, "Line Width", minval=1, maxval=5, group="Sessions")
+extendLines        = input.bool(false, "Extend Lines Right", group="Sessions")
+
+//====================================================
+// CALCULATIONS
+//====================================================
+
+emaFast  = ta.ema(close, fastEMA)
+emaSlow  = ta.ema(close, slowEMA)
+sma200   = ta.sma(close, smaLen)
+vwapVal  = ta.vwap(hlc3)
+rsiVal   = ta.rsi(close, rsiLen)
+
+rsiSrc   = ta.rsi(close, stochLen)
+stochRSI = ta.stoch(rsiSrc, rsiSrc, rsiSrc, stochLen)
+k        = ta.sma(stochRSI, kLen)
+d        = ta.sma(k, dLen)
+
+volMA        = ta.sma(volume, volLen)
+strongVolume = volume > volMA * volMult
+
+bbBasis = ta.sma(close, bbLen)
+bbDev   = bbMult * ta.stdev(close, bbLen)
+bbUpper = bbBasis + bbDev
+bbLower = bbBasis - bbDev
+
+//====================================================
+// TREND ENGINE
+//====================================================
+
+bullTrend = emaFast > emaSlow and close > vwapVal and rsiVal > 50
+bearTrend = emaFast < emaSlow and close < vwapVal and rsiVal < 50
+
+// Lighter trend: just EMA direction
+emaBull = emaFast > emaSlow
+emaBear = emaFast < emaSlow
+
+//====================================================
+// STOCH CONFIRMATION
+//====================================================
+
+stochBull = ta.crossover(k, d)  and k < 40
+stochBear = ta.crossunder(k, d) and k > 60
+
+//====================================================
+// UT BOT ENGINE
+//====================================================
+
+xATR  = ta.atr(utATR)
+nLoss = utA * xATR
+
+var float trailStop = na
+prevStop = nz(trailStop[1])
+
+if close > prevStop and close[1] > prevStop
+    trailStop := math.max(prevStop, close - nLoss)
+else if close < prevStop and close[1] < prevStop
+    trailStop := math.min(prevStop, close + nLoss)
+else
+    trailStop := close > prevStop ? close - nLoss : close + nLoss
+
+utBuy  = ta.crossover(close, trailStop)
+utSell = ta.crossunder(close, trailStop)
+utBull = close > trailStop
+utBear = close < trailStop
+
+//====================================================
+// FILTER CONDITIONS
+//====================================================
+
+trendLongOK  = not useTrendFilter  or bullTrend
+trendShortOK = not useTrendFilter  or bearTrend
+volumeOK     = not useVolumeFilter or strongVolume
+stochLongOK  = not useStochFilter  or stochBull
+stochShortOK = not useStochFilter  or stochBear
+
+//====================================================
+// FINAL SIGNALS
+//====================================================
+
+longSignal  = utBuy  and trendLongOK  and volumeOK and stochLongOK
+shortSignal = utSell and trendShortOK and volumeOK and stochShortOK
+
+//====================================================
+// RSI TAKE-PROFIT
+//====================================================
+
+longTP      = bullTrend and rsiVal >= rsiOB
+shortTP     = bearTrend and rsiVal <= rsiOS
+extremeBull = bullTrend and rsiVal >= extremeOB
+extremeBear = bearTrend and rsiVal <= extremeOS
+
+//====================================================
+// SESSION BOXES
+//====================================================
+
+inAsia    = not na(time(timeframe.period, asiaSession,   sessionTZ))
+inLondon  = not na(time(timeframe.period, londonSession, sessionTZ))
+inNY      = not na(time(timeframe.period, nySession,     sessionTZ))
+
+asiaStart   = inAsia   and not inAsia[1]
+londonStart = inLondon and not inLondon[1]
+nyStart     = inNY     and not inNY[1]
+
+var float asiaH = na
+var float asiaL = na
+var float lonH  = na
+var float lonL  = na
+var float nyH   = na
+var float nyL   = na
+
+var line asiaHL = na
+var line asiaLL = na
+var line lonHL  = na
+var line lonLL  = na
+var line nyHL   = na
+var line nyLL   = na
+
+var int asiaStartBar = na
+var int lonStartBar  = na
+var int nyStartBar   = na
+
+ext = extendLines ? extend.right : extend.none
+
+// --- Asia ---
+if showSessionBoxes and showAsiaBox and asiaStart
+    asiaH := high
+    asiaL := low
+    asiaStartBar := bar_index
+    line.delete(asiaHL)
+    line.delete(asiaLL)
+    asiaHL := line.new(bar_index, asiaH, bar_index, asiaH, color=asiaColor, width=sessionLineW, extend=extend.none)
+    asiaLL := line.new(bar_index, asiaL, bar_index, asiaL, color=asiaColor, width=sessionLineW, extend=extend.none)
+
+if showSessionBoxes and showAsiaBox and inAsia
+    asiaH := math.max(asiaH, high)
+    asiaL := math.min(asiaL, low)
+    line.set_x2(asiaHL, bar_index)
+    line.set_y1(asiaHL, asiaH)
+    line.set_y2(asiaHL, asiaH)
+    line.set_x2(asiaLL, bar_index)
+    line.set_y1(asiaLL, asiaL)
+    line.set_y2(asiaLL, asiaL)
+
+if showSessionBoxes and showAsiaBox and not inAsia and inAsia[1]
+    line.set_extend(asiaHL, ext)
+    line.set_extend(asiaLL, ext)
+
+// --- London ---
+if showSessionBoxes and showLondonBox and londonStart
+    lonH := high
+    lonL := low
+    lonStartBar := bar_index
+    line.delete(lonHL)
+    line.delete(lonLL)
+    lonHL := line.new(bar_index, lonH, bar_index, lonH, color=londonColor, width=sessionLineW, extend=extend.none)
+    lonLL := line.new(bar_index, lonL, bar_index, lonL, color=londonColor, width=sessionLineW, extend=extend.none)
+
+if showSessionBoxes and showLondonBox and inLondon
+    lonH := math.max(lonH, high)
+    lonL := math.min(lonL, low)
+    line.set_x2(lonHL, bar_index)
+    line.set_y1(lonHL, lonH)
+    line.set_y2(lonHL, lonH)
+    line.set_x2(lonLL, bar_index)
+    line.set_y1(lonLL, lonL)
+    line.set_y2(lonLL, lonL)
+
+if showSessionBoxes and showLondonBox and not inLondon and inLondon[1]
+    line.set_extend(lonHL, ext)
+    line.set_extend(lonLL, ext)
+
+// --- New York ---
+if showSessionBoxes and showNYBox and nyStart
+    nyH := high
+    nyL := low
+    nyStartBar := bar_index
+    line.delete(nyHL)
+    line.delete(nyLL)
+    nyHL := line.new(bar_index, nyH, bar_index, nyH, color=nyColor, width=sessionLineW, extend=extend.none)
+    nyLL := line.new(bar_index, nyL, bar_index, nyL, color=nyColor, width=sessionLineW, extend=extend.none)
+
+if showSessionBoxes and showNYBox and inNY
+    nyH := math.max(nyH, high)
+    nyL := math.min(nyL, low)
+    line.set_x2(nyHL, bar_index)
+    line.set_y1(nyHL, nyH)
+    line.set_y2(nyHL, nyH)
+    line.set_x2(nyLL, bar_index)
+    line.set_y1(nyLL, nyL)
+    line.set_y2(nyLL, nyL)
+
+if showSessionBoxes and showNYBox and not inNY and inNY[1]
+    line.set_extend(nyHL, ext)
+    line.set_extend(nyLL, ext)
+
+bgcolor(showSessionBoxes and showAsiaBox   and inAsia   ? color.new(asiaColor,   92) : na)
+bgcolor(showSessionBoxes and showLondonBox and inLondon ? color.new(londonColor, 92) : na)
+bgcolor(showSessionBoxes and showNYBox     and inNY     ? color.new(nyColor,     92) : na)
+
+//====================================================
+// PLOTS — visible on dark AND light themes
+//====================================================
+
+// VWAP — cyan so it's visible on dark backgrounds
+plot(showVWAP ? vwapVal : na, "VWAP", color.new(#00BCD4, 0), 3)
+
+// EMAs — bright and thick
+plot(showEMAs ? emaFast : na, "EMA Fast", color.new(#00FF00, 0), 2)
+plot(showEMAs ? emaSlow : na, "EMA Slow", color.new(#FF5252, 0), 2)
+
+// SMA 200
+plot(showSMA200 ? sma200 : na, "SMA 200", color.white, 3)
+
+// Bollinger Bands
+bbUpPlot  = plot(showBB ? bbUpper : na, "BB Upper", color.new(color.gray, 50), 1)
+bbLoPlot  = plot(showBB ? bbLower : na, "BB Lower", color.new(color.gray, 50), 1)
+plot(showBB ? bbBasis : na, "BB Mid", color.gray, 1, plot.style_circles)
+fill(bbUpPlot, bbLoPlot, color=showBB ? color.new(color.gray, 92) : na)
+
+// UT Bot trailing stop — step line
+utColor = utBull ? color.new(#00E676, 30) : color.new(#FF1744, 30)
+plot(showTrailStop ? trailStop : na, "UT Trail", utColor, 2, plot.style_stepline_diamond)
+
+//====================================================
+// BAR COLORS
+//====================================================
+
+color barCol = na
+if extremeBull
+    barCol := color.new(#00C853, 20)
+else if extremeBear
+    barCol := color.new(#D50000, 20)
+else if bullTrend
+    barCol := color.new(#69F0AE, 50)
+else if bearTrend
+    barCol := color.new(#FF8A80, 50)
+
+barcolor(showBarColors ? barCol : na)
+
+//====================================================
+// BUY / SELL LABELS
+//====================================================
+
+plotshape(showSignals and longSignal, "BUY", shape.labelup, location.belowbar,
+     color.new(#00E676, 0), text="BUY", textcolor=color.black, size=size.normal)
+
+plotshape(showSignals and shortSignal, "SELL", shape.labeldown, location.abovebar,
+     color.new(#FF1744, 0), text="SELL", textcolor=color.white, size=size.normal)
+
+//====================================================
+// TP DOTS
+//====================================================
+
+plotshape(showTPDots and longTP, "LONG TP", shape.diamond, location.abovebar,
+     color.new(#00E676, 0), size=size.tiny)
+
+plotshape(showTPDots and shortTP, "SHORT TP", shape.diamond, location.belowbar,
+     color.new(#FF1744, 0), size=size.tiny)
+
+//====================================================
+// VOLUME SPIKE MARKERS
+//====================================================
+
+plotshape(strongVolume and close > open, "Vol Spike Up", shape.circle,
+     location.belowbar, color.new(#FFFF00, 30), size=size.tiny)
+
+plotshape(strongVolume and close < open, "Vol Spike Down", shape.circle,
+     location.abovebar, color.new(#FF6F00, 30), size=size.tiny)
+
+//====================================================
+// VOLUME AS NUMBERS (+ buy volume / − sell volume)
+//====================================================
+
+formatVolume(v) =>
+    string txt = na
+    if v >= 1000000000
+        txt := str.tostring(v / 1000000000, "#.##") + "B"
+    else if v >= 1000000
+        txt := str.tostring(v / 1000000, "#.##") + "M"
+    else if v >= 1000
+        txt := str.tostring(v / 1000, "#.##") + "K"
+    else
+        txt := str.tostring(v, "#")
+    txt
+
+volUp    = close >= open
+volText  = (volUp ? "+" : "-") + formatVolume(volume)
+volClr   = volUp ? #00E676 : #FF1744
+volAtr   = ta.atr(14)
+volPrice = volUp ? low - volAtr * 0.6 : high + volAtr * 0.6
+
+if showVolNumbers
+    label.new(bar_index, volPrice, volText,
+         style=label.style_none, textcolor=volClr, size=volLabelSize)
+
+// big-font current-bar volume readout, separate from the per-bar labels above
+var table volDash = table.new(position.top_left, 1, 1, bgcolor=#1E1E1E, border_width=1, border_color=#333333)
+
+if barstate.islast and showVolBigDash
+    table.cell(volDash, 0, 0, volText, text_color=volClr, text_size=volBigSize, bgcolor=#1E1E1E)
+
+//====================================================
+// MTF TREND
+//====================================================
+
+getTrend(tf) =>
+    fastTF = request.security(syminfo.tickerid, tf, ta.ema(close, fastEMA))
+    slowTF = request.security(syminfo.tickerid, tf, ta.ema(close, slowEMA))
+    fastTF > slowTF ? 1 : fastTF < slowTF ? -1 : 0
+
+trend1  = getTrend("1")
+trend5  = getTrend("5")
+trend15 = getTrend("15")
+trend1H = getTrend("60")
+trend4H = getTrend("240")
+trendD  = getTrend("D")
+
+trendTxt(v) => v == 1 ? "BULL" : v == -1 ? "BEAR" : "—"
+trendClr(v) => v == 1 ? #00E676 : v == -1 ? #FF1744 : #9E9E9E
+
+//====================================================
+// DASHBOARD — top right
+//====================================================
+
+var table dash = table.new(position.top_right, 9, 3, bgcolor=#1E1E1E, border_width=1, border_color=#333333)
+
+if barstate.islast and showDashboard
+    // Row 0: headers
+    table.cell(dash, 0, 0, "1M",  text_color=color.white, text_size=size.small, bgcolor=#333333)
+    table.cell(dash, 1, 0, "5M",  text_color=color.white, text_size=size.small, bgcolor=#333333)
+    table.cell(dash, 2, 0, "15M", text_color=color.white, text_size=size.small, bgcolor=#333333)
+    table.cell(dash, 3, 0, "1H",  text_color=color.white, text_size=size.small, bgcolor=#333333)
+    table.cell(dash, 4, 0, "4H",  text_color=color.white, text_size=size.small, bgcolor=#333333)
+    table.cell(dash, 5, 0, "D",   text_color=color.white, text_size=size.small, bgcolor=#333333)
+    table.cell(dash, 6, 0, "UT",  text_color=color.white, text_size=size.small, bgcolor=#333333)
+    table.cell(dash, 7, 0, "VOL", text_color=color.white, text_size=size.small, bgcolor=#333333)
+    table.cell(dash, 8, 0, "TP",  text_color=color.white, text_size=size.small, bgcolor=#333333)
+
+    // Row 1: trend values
+    table.cell(dash, 0, 1, trendTxt(trend1),  text_color=#000000, text_size=size.small, bgcolor=trendClr(trend1))
+    table.cell(dash, 1, 1, trendTxt(trend5),  text_color=#000000, text_size=size.small, bgcolor=trendClr(trend5))
+    table.cell(dash, 2, 1, trendTxt(trend15), text_color=#000000, text_size=size.small, bgcolor=trendClr(trend15))
+    table.cell(dash, 3, 1, trendTxt(trend1H), text_color=#000000, text_size=size.small, bgcolor=trendClr(trend1H))
+    table.cell(dash, 4, 1, trendTxt(trend4H), text_color=#000000, text_size=size.small, bgcolor=trendClr(trend4H))
+    table.cell(dash, 5, 1, trendTxt(trendD),  text_color=#000000, text_size=size.small, bgcolor=trendClr(trendD))
+
+    // UT Bot
+    utTxt = utBull ? "BULL" : utBear ? "BEAR" : "WAIT"
+    utClr = utBull ? #00E676 : utBear ? #FF1744 : #9E9E9E
+    table.cell(dash, 6, 1, utTxt, text_color=#000000, text_size=size.small, bgcolor=utClr)
+
+    // Volume
+    volTxt = strongVolume ? "HIGH" : "LOW"
+    volClr = strongVolume ? #FF9800 : #616161
+    table.cell(dash, 7, 1, volTxt, text_color=#000000, text_size=size.small, bgcolor=volClr)
+
+    // TP
+    tpTxt = longTP ? "LONG TP" : shortTP ? "SHORT TP" : "HOLD"
+    tpClr = longTP ? #00E676 : shortTP ? #FF1744 : #616161
+    table.cell(dash, 8, 1, tpTxt, text_color=color.white, text_size=size.small, bgcolor=tpClr)
+
+    // Row 2: current state summary
+    rsiTxt = "RSI: " + str.tostring(rsiVal, "#.0")
+    rsiClr = rsiVal >= rsiOB ? #FF1744 : rsiVal <= rsiOS ? #00E676 : #9E9E9E
+    table.cell(dash, 0, 2, rsiTxt,   text_color=color.white, text_size=size.tiny, bgcolor=rsiClr)
+    table.cell(dash, 1, 2, "K:" + str.tostring(k, "#.0"), text_color=color.white, text_size=size.tiny, bgcolor=#333333)
+    table.cell(dash, 2, 2, "D:" + str.tostring(d, "#.0"), text_color=color.white, text_size=size.tiny, bgcolor=#333333)
+
+    emaTxt = emaBull ? "EMA↑" : emaBear ? "EMA↓" : "EMA—"
+    emaClr = emaBull ? #00E676 : emaBear ? #FF1744 : #9E9E9E
+    table.cell(dash, 3, 2, emaTxt, text_color=#000000, text_size=size.tiny, bgcolor=emaClr)
+
+    vwpTxt = close > vwapVal ? ">VWAP" : "<VWAP"
+    vwpClr = close > vwapVal ? #00E676 : #FF1744
+    table.cell(dash, 4, 2, vwpTxt, text_color=#000000, text_size=size.tiny, bgcolor=vwpClr)
+
+    sigTxt = bullTrend ? "BULLISH" : bearTrend ? "BEARISH" : "NEUTRAL"
+    sigClr = bullTrend ? #00E676 : bearTrend ? #FF1744 : #9E9E9E
+    table.cell(dash, 5, 2, sigTxt, text_color=#000000, text_size=size.small, bgcolor=sigClr)
+
+    table.merge_cells(dash, 5, 2, 8, 2)
+
+//====================================================
+// ALERTS
+//====================================================
+
+alertcondition(longSignal,  "BUY ALERT",  "ETH EVENT MASTER — BUY signal")
+alertcondition(shortSignal, "SELL ALERT", "ETH EVENT MASTER — SELL signal")
+alertcondition(longTP,      "LONG TP",    "ETH EVENT MASTER — Long take-profit zone")
+alertcondition(shortTP,     "SHORT TP",   "ETH EVENT MASTER — Short take-profit zone")
+alertcondition(strongVolume, "VOL SPIKE", "ETH EVENT MASTER — Volume spike detected")

@@ -1,0 +1,257 @@
+// This Pine Script™ is subject to the Terms of Use at https://www.tradingview.com/pine-script-docs/
+// Educational tool only — NOT financial advice or a prediction system.
+
+//@version=6
+indicator("ETH EVENT MASTER v3", overlay=true, max_labels_count=500)
+
+//====================================================
+// INPUTS
+//====================================================
+
+showSignals    = input.bool(true,  "Show Buy/Sell Labels",  group="Core")
+showVWAP       = input.bool(true,  "Show VWAP",            group="Core")
+showBarColors  = input.bool(true,  "Show Candle Colors",   group="Core")
+showDashboard  = input.bool(true,  "Show Dashboard",       group="Core")
+showTrailStop  = input.bool(true,  "Show UT Trail Stop",   group="Core")
+showEMAs       = input.bool(true,  "Show EMAs",            group="Core")
+showTPDots     = input.bool(true,  "Show RSI TP Dots",     group="Core")
+showVolDots    = input.bool(true,  "Show Volume Spikes",   group="Core")
+
+fastEMA        = input.int(9,   "Fast EMA",  group="Moving Averages")
+slowEMA        = input.int(21,  "Slow EMA",  group="Moving Averages")
+
+rsiLen         = input.int(14, "RSI Length",     group="RSI")
+rsiOB          = input.int(70, "RSI Overbought", group="RSI")
+rsiOS          = input.int(30, "RSI Oversold",   group="RSI")
+
+stochLen       = input.int(14, "Stoch RSI Length", group="Stoch RSI")
+kLen           = input.int(3,  "K Length",         group="Stoch RSI")
+dLen           = input.int(3,  "D Length",         group="Stoch RSI")
+
+volLen         = input.int(20,    "Volume MA Length",  group="Volume")
+volMult        = input.float(1.2, "Volume Multiplier", group="Volume")
+
+utA            = input.float(2.0, "UT Sensitivity",  group="UT Bot")
+utATR          = input.int(10,    "UT ATR Period",    group="UT Bot")
+
+useTrendFilter = input.bool(false, "Use Trend Filter",  group="Filters")
+useVolFilter   = input.bool(false, "Use Volume Filter",  group="Filters")
+useStochFilter = input.bool(false, "Use Stoch Filter",   group="Filters")
+
+//====================================================
+// CALCULATIONS
+//====================================================
+
+emaF = ta.ema(close, fastEMA)
+emaS = ta.ema(close, slowEMA)
+vwp  = ta.vwap(hlc3)
+rsi  = ta.rsi(close, rsiLen)
+
+rSrc = ta.rsi(close, stochLen)
+stK  = ta.sma(ta.stoch(rSrc, rSrc, rSrc, stochLen), kLen)
+stD  = ta.sma(stK, dLen)
+
+vMA  = ta.sma(volume, volLen)
+hiVol = volume > vMA * volMult
+
+//====================================================
+// TREND
+//====================================================
+
+bullTrend = emaF > emaS and close > vwp and rsi > 50
+bearTrend = emaF < emaS and close < vwp and rsi < 50
+emaBull   = emaF > emaS
+emaBear   = emaF < emaS
+
+//====================================================
+// STOCH CONFIRMATION
+//====================================================
+
+stBull = ta.crossover(stK, stD)  and stK < 40
+stBear = ta.crossunder(stK, stD) and stK > 60
+
+//====================================================
+// UT BOT
+//====================================================
+
+atr   = ta.atr(utATR)
+nLoss = utA * atr
+
+var float ts = na
+prev = nz(ts[1])
+
+if close > prev and close[1] > prev
+    ts := math.max(prev, close - nLoss)
+else if close < prev and close[1] < prev
+    ts := math.min(prev, close + nLoss)
+else
+    ts := close > prev ? close - nLoss : close + nLoss
+
+utBuy  = ta.crossover(close, ts)
+utSell = ta.crossunder(close, ts)
+utBull = close > ts
+utBear = close < ts
+
+//====================================================
+// FILTERS + SIGNALS
+//====================================================
+
+tLongOK  = not useTrendFilter or bullTrend
+tShortOK = not useTrendFilter or bearTrend
+vOK      = not useVolFilter   or hiVol
+sLongOK  = not useStochFilter or stBull
+sShortOK = not useStochFilter or stBear
+
+longSig  = utBuy  and tLongOK  and vOK and sLongOK
+shortSig = utSell and tShortOK and vOK and sShortOK
+
+//====================================================
+// RSI TP
+//====================================================
+
+longTP  = bullTrend and rsi >= rsiOB
+shortTP = bearTrend and rsi <= rsiOS
+
+//====================================================
+// PLOTS — all overlay on price chart
+//====================================================
+
+plot(showVWAP ? vwp : na, "VWAP", color.new(#00BCD4, 0), 2)
+plot(showEMAs ? emaF : na, "EMA Fast", color.new(#00FF00, 0), 2)
+plot(showEMAs ? emaS : na, "EMA Slow", color.new(#FF5252, 0), 2)
+
+// UT trailing stop — colored by direction
+plot(showTrailStop ? ts : na, "UT Trail",
+     utBull ? color.new(#00E676, 0) : color.new(#FF1744, 0),
+     2, plot.style_stepline_diamond)
+
+//====================================================
+// CANDLE COLORS
+//====================================================
+
+color bc = na
+if bullTrend and rsi >= 80
+    bc := color.new(#00C853, 20)
+else if bearTrend and rsi <= 20
+    bc := color.new(#D50000, 20)
+else if bullTrend
+    bc := color.new(#69F0AE, 50)
+else if bearTrend
+    bc := color.new(#FF8A80, 50)
+
+barcolor(showBarColors ? bc : na)
+
+//====================================================
+// BUY / SELL
+//====================================================
+
+plotshape(showSignals and longSig, "BUY", shape.labelup, location.belowbar,
+     color.new(#00E676, 0), text="BUY", textcolor=color.black, size=size.normal)
+
+plotshape(showSignals and shortSig, "SELL", shape.labeldown, location.abovebar,
+     color.new(#FF1744, 0), text="SELL", textcolor=color.white, size=size.normal)
+
+//====================================================
+// TP DOTS
+//====================================================
+
+plotshape(showTPDots and longTP, "LONG TP", shape.diamond, location.abovebar,
+     color.new(#00E676, 0), size=size.tiny)
+
+plotshape(showTPDots and shortTP, "SHORT TP", shape.diamond, location.belowbar,
+     color.new(#FF1744, 0), size=size.tiny)
+
+//====================================================
+// VOLUME SPIKES
+//====================================================
+
+plotshape(showVolDots and hiVol and close > open, "Vol Up", shape.circle,
+     location.belowbar, color.new(#FFFF00, 30), size=size.tiny)
+
+plotshape(showVolDots and hiVol and close < open, "Vol Down", shape.circle,
+     location.abovebar, color.new(#FF6F00, 30), size=size.tiny)
+
+//====================================================
+// MTF TREND
+//====================================================
+
+getTrend(tf) =>
+    f = request.security(syminfo.tickerid, tf, ta.ema(close, fastEMA))
+    s = request.security(syminfo.tickerid, tf, ta.ema(close, slowEMA))
+    f > s ? 1 : f < s ? -1 : 0
+
+t1  = getTrend("1")
+t5  = getTrend("5")
+t15 = getTrend("15")
+t1H = getTrend("60")
+t4H = getTrend("240")
+tD  = getTrend("D")
+
+tt(v) => v == 1 ? "BULL" : v == -1 ? "BEAR" : "—"
+tc(v) => v == 1 ? #00E676 : v == -1 ? #FF1744 : #616161
+
+//====================================================
+// DASHBOARD
+//====================================================
+
+var table d = table.new(position.top_right, 9, 3,
+     bgcolor=#1E1E1E, border_width=1, border_color=#444444)
+
+if barstate.islast and showDashboard
+    hdrs = array.from("1M","5M","15M","1H","4H","D","UT","VOL","TP")
+    for i = 0 to 8
+        table.cell(d, i, 0, array.get(hdrs, i),
+             text_color=color.white, text_size=size.small, bgcolor=#333333)
+
+    tvals = array.from(t1, t5, t15, t1H, t4H, tD)
+    for i = 0 to 5
+        table.cell(d, i, 1, tt(array.get(tvals, i)),
+             text_color=#000000, text_size=size.small, bgcolor=tc(array.get(tvals, i)))
+
+    table.cell(d, 6, 1, utBull ? "BULL" : utBear ? "BEAR" : "WAIT",
+         text_color=#000000, text_size=size.small,
+         bgcolor=utBull ? #00E676 : utBear ? #FF1744 : #616161)
+
+    table.cell(d, 7, 1, hiVol ? "HIGH" : "LOW",
+         text_color=#000000, text_size=size.small,
+         bgcolor=hiVol ? #FF9800 : #616161)
+
+    table.cell(d, 8, 1, longTP ? "LONG TP" : shortTP ? "SHORT TP" : "HOLD",
+         text_color=color.white, text_size=size.small,
+         bgcolor=longTP ? #00E676 : shortTP ? #FF1744 : #616161)
+
+    // Row 2: live values
+    table.cell(d, 0, 2, "RSI:" + str.tostring(rsi, "#"),
+         text_color=color.white, text_size=size.tiny,
+         bgcolor=rsi >= rsiOB ? #FF1744 : rsi <= rsiOS ? #00E676 : #333333)
+
+    table.cell(d, 1, 2, "K:" + str.tostring(stK, "#"),
+         text_color=color.white, text_size=size.tiny, bgcolor=#333333)
+
+    table.cell(d, 2, 2, "D:" + str.tostring(stD, "#"),
+         text_color=color.white, text_size=size.tiny, bgcolor=#333333)
+
+    table.cell(d, 3, 2, emaBull ? "EMA↑" : emaBear ? "EMA↓" : "—",
+         text_color=#000000, text_size=size.tiny,
+         bgcolor=emaBull ? #00E676 : emaBear ? #FF1744 : #616161)
+
+    table.cell(d, 4, 2, close > vwp ? ">VWAP" : "<VWAP",
+         text_color=#000000, text_size=size.tiny,
+         bgcolor=close > vwp ? #00E676 : #FF1744)
+
+    ov = bullTrend ? "BULLISH" : bearTrend ? "BEARISH" : "NEUTRAL"
+    oc = bullTrend ? #00E676 : bearTrend ? #FF1744 : #616161
+    table.cell(d, 5, 2, ov, text_color=#000000, text_size=size.small, bgcolor=oc)
+    table.cell(d, 6, 2, "", bgcolor=#1E1E1E)
+    table.cell(d, 7, 2, "", bgcolor=#1E1E1E)
+    table.cell(d, 8, 2, "", bgcolor=#1E1E1E)
+
+//====================================================
+// ALERTS
+//====================================================
+
+alertcondition(longSig,  "BUY",      "ETH EVENT MASTER — BUY")
+alertcondition(shortSig, "SELL",     "ETH EVENT MASTER — SELL")
+alertcondition(longTP,   "LONG TP",  "ETH EVENT MASTER — Long TP")
+alertcondition(shortTP,  "SHORT TP", "ETH EVENT MASTER — Short TP")
+alertcondition(hiVol,    "VOL SPIKE","ETH EVENT MASTER — Volume spike")

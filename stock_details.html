@@ -1,0 +1,824 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ETH Target Projection</title>
+    <style>
+      :root {
+        --gap: 24px;
+        font-family: -apple-system, BlinkMacSystemFont, 'Trebuchet MS', Roboto, Ubuntu, sans-serif;
+        color: #131722;
+      }
+      * { box-sizing: border-box; margin: 0; }
+      body { background: #f0f3fa; padding: 0; }
+
+      header {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 12px var(--gap); background: #fff;
+        box-shadow: 0 1px 4px rgba(0,0,0,.08);
+      }
+      header .logo {
+        font-weight: 700; font-size: 22px;
+        background: linear-gradient(90deg,#00bce5,#2962ff);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      }
+      header .price-tag { font-size: 15px; color: #787b86; }
+      header .price-tag b { color: #131722; font-size: 18px; }
+
+      main { max-width: 1100px; margin: var(--gap) auto; padding: 0 var(--gap); display: flex; flex-direction: column; gap: var(--gap); }
+
+      /* Chart */
+      #eth-chart { height: 520px; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+      #eth-chart .tradingview-widget-container,
+      #eth-chart .tradingview-widget-container__widget { width: 100%; height: 100%; }
+
+      /* Target section */
+      #target-calc { background: #fff; border-radius: 10px; padding: 24px; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+      #target-calc h2 { font-size: 20px; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+      #live-badge { display:none; align-items:center; gap:5px; font-size:11px; font-weight:700; color:#00a35c; }
+      #live-badge .dot { width:7px; height:7px; border-radius:50%; background:#00a35c; animation:pulse 1s infinite; }
+      @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+      .input-row { display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:20px; }
+      .input-row label { font-weight:600; font-size:14px; }
+      .input-row input { padding:9px 14px; font-size:18px; font-weight:600; width:170px; border:2px solid #2962ff; border-radius:8px; outline:none; }
+      .input-row input:focus { box-shadow:0 0 0 3px rgba(41,98,255,.2); }
+      .input-row button { padding:9px 22px; font-size:14px; font-weight:600; border:none; border-radius:8px; cursor:pointer; color:#fff; }
+      #calcBtn { background:#2962ff; }
+      #calcBtn:hover { background:#1e53e5; }
+      #stopBtn { background:#ff1744; display:none; }
+      #stopBtn:hover { background:#d50000; }
+
+      /* Projection table */
+      .proj-table { width:100%; border-collapse:collapse; font-size:13px; }
+      .proj-table th { background:#f0f3fa; padding:10px 8px; text-align:center; font-weight:600; color:#787b86; text-transform:uppercase; font-size:11px; border-bottom:2px solid #e0e3eb; }
+      .proj-table td { padding:10px 8px; text-align:center; border-bottom:1px solid #f0f3fa; }
+      .proj-table tr:hover td { background:#f8f9fd; }
+      .proj-table .min-col { font-weight:700; font-size:14px; color:#2962ff; }
+      .proj-table .cross-yes { color:#00a35c; font-weight:700; }
+      .proj-table .cross-no  { color:#ff1744; font-weight:700; }
+      .proj-table .bar-cell { width:120px; }
+      .prob-bar { height:8px; border-radius:4px; background:#e0e3eb; overflow:hidden; }
+      .prob-bar-fill { height:100%; border-radius:4px; transition:width .4s; }
+      .status-above { color:#00a35c; font-weight:600; }
+      .status-below { color:#ff1744; font-weight:600; }
+      .vol-bull { color:#00a35c; font-weight:700; font-size:12px; }
+      .vol-bear { color:#ff1744; font-weight:700; font-size:12px; }
+      .cd-cell { font-family:'Courier New',monospace; color:#2962ff; font-weight:700; font-size:12px; }
+
+      .proj-empty { text-align:center; padding:40px; color:#787b86; font-size:14px; background:#f8f9fd; border:1px dashed #e0e3eb; border-radius:8px; }
+
+      footer { text-align:center; padding:16px; font-size:11px; color:#787b86; margin-top:var(--gap); }
+
+      /* Countdown bar */
+      #countdown-bar {
+        display:flex; align-items:center; justify-content:center; gap:18px;
+        background:#1e222d; color:#fff; padding:10px 20px; border-radius:8px;
+        font-size:14px; font-weight:600;
+      }
+      #countdown-bar .cd-label { color:#787b86; font-size:12px; text-transform:uppercase; }
+      #countdown-bar .cd-time { font-size:22px; font-family:'Courier New',monospace; letter-spacing:2px; color:#26a69a; }
+      #countdown-bar .cd-tf { background:#2962ff; padding:3px 10px; border-radius:4px; font-size:12px; cursor:pointer; }
+      #countdown-bar select { background:#2a2e39; color:#fff; border:1px solid #434651; border-radius:4px; padding:4px 8px; font-size:13px; font-weight:600; cursor:pointer; outline:none; }
+
+      /* Trading assistant */
+      #chat-toggle { position:fixed; right:16px; top:50%; transform:translateY(-50%); z-index:21; width:46px; height:46px; border:0; border-radius:50%; background:#1e222d; color:#fff; font-size:23px; cursor:pointer; box-shadow:0 3px 12px rgba(19,23,34,.22); transition:right .2s ease, background .2s ease; }
+      #chat-toggle:hover { background:#2962ff; }
+      #chat-toggle.open { right:352px; background:#2962ff; }
+      #trading-chat { position:fixed; right:16px; top:16px; bottom:16px; z-index:19; width:320px; display:flex; flex-direction:column; background:#fff; border:1px solid #e0e3eb; border-radius:10px; box-shadow:0 8px 30px rgba(19,23,34,.18); overflow:hidden; transform:translateX(calc(100% + 24px)); transition:transform .2s ease; }
+      #trading-chat.open { transform:translateX(0); }
+      .chat-head { display:flex; align-items:center; justify-content:space-between; padding:14px 16px; background:#1e222d; color:#fff; }
+      .chat-head strong { font-size:14px; }
+      .chat-head small { display:block; margin-top:3px; color:#aeb4c2; font-size:11px; }
+      .chat-agent { display:flex; align-items:center; gap:8px; padding:9px 12px; border-bottom:1px solid #e0e3eb; background:#fff; color:#394150; font-size:12px; }
+      .chat-agent select { min-width:0; flex:1; padding:6px 8px; border:1px solid #c9ced8; border-radius:5px; background:#fff; color:#131722; font:inherit; }
+      .chat-model-status { padding:7px 12px; border-bottom:1px solid #e0e3eb; color:#747b88; font-size:10px; line-height:1.4; }
+      .chat-close { width:28px; height:28px; border:0; border-radius:5px; background:transparent; color:#fff; font-size:20px; cursor:pointer; }
+      .chat-close:hover { background:#434651; }
+      #chat-messages { flex:1; overflow-y:auto; padding:14px; background:#f8f9fd; }
+      .chat-msg { max-width:92%; margin-bottom:10px; padding:10px 11px; border-radius:8px; font-size:13px; line-height:1.45; white-space:pre-wrap; }
+      .chat-msg.assistant { background:#fff; border:1px solid #e0e3eb; color:#131722; }
+      .chat-msg.user { margin-left:auto; background:#2962ff; color:#fff; }
+      .chat-quick { display:flex; flex-wrap:wrap; gap:6px; padding:10px 12px 0; background:#fff; }
+      .chat-quick button { border:1px solid #d5d9e2; border-radius:14px; padding:5px 8px; background:#fff; color:#394150; font-size:11px; cursor:pointer; }
+      .chat-quick button:hover { border-color:#2962ff; color:#2962ff; }
+      .chat-form { display:flex; gap:8px; padding:12px; border-top:1px solid #e0e3eb; background:#fff; }
+      #chat-input { min-width:0; flex:1; resize:none; border:1px solid #c9ced8; border-radius:7px; padding:9px; font:13px inherit; outline:none; }
+      #chat-input:focus { border-color:#2962ff; box-shadow:0 0 0 2px rgba(41,98,255,.14); }
+      #chat-send { width:38px; border:0; border-radius:7px; background:#2962ff; color:#fff; font-size:17px; cursor:pointer; }
+      #chat-send:hover { background:#1e53e5; }
+      #chat-send:disabled { opacity:.55; cursor:wait; }
+      @media (max-width:600px) { #trading-chat { left:8px; right:8px; top:8px; bottom:8px; width:auto; } #chat-toggle { right:10px; } #chat-toggle.open { right:18px; top:22px; transform:none; } }
+    </style>
+  </head>
+  <body>
+    <button id="chat-toggle" type="button" aria-label="Open trading assistant" title="Open trading assistant">&#129302;</button>
+    <aside id="trading-chat" aria-label="Trading assistant">
+      <div class="chat-head">
+        <div><strong>Trading Assistant</strong><small>Decision support, not financial advice</small></div>
+        <button class="chat-close" id="chat-close" type="button" aria-label="Close trading assistant">&times;</button>
+      </div>
+      <label class="chat-agent" for="chat-model-select">Model
+        <select id="chat-model-select" aria-label="Choose AI model">
+          <option value="auto">Auto (configured provider)</option>
+          <option value="vscode:auto">Auto (VS Code model)</option>
+          <optgroup label="OpenAI">
+            <option value="openai:gpt-4.1">GPT-4.1</option>
+            <option value="openai:gpt-4.1-mini">GPT-4.1 mini</option>
+          </optgroup>
+          <optgroup label="Anthropic Claude">
+            <option value="anthropic:claude-sonnet-4-20250514">Claude Sonnet 4</option>
+            <option value="anthropic:claude-opus-4-20250514">Claude Opus 4</option>
+          </optgroup>
+        </select>
+      </label>
+      <div id="chat-model-status" class="chat-model-status" role="status">Checking configured AI providers...</div>
+      <div id="chat-messages" aria-live="polite"></div>
+      <div class="chat-quick" aria-label="Quick questions">
+        <button type="button" data-chat-prompt="Explain the current dashboard signal">Explain signal</button>
+        <button type="button" data-chat-prompt="Is my target above or below price?">Target direction</button>
+        <button type="button" data-chat-prompt="What are the risks right now?">Risk check</button>
+      </div>
+      <form class="chat-form" id="chat-form">
+        <textarea id="chat-input" rows="2" placeholder="Ask about ETH, the target, RSI, or risk..." aria-label="Trading question"></textarea>
+        <button id="chat-send" type="submit" aria-label="Send question" title="Send question">&#10148;</button>
+      </form>
+    </aside>
+    <header>
+      <span class="logo">ETH Projection</span>
+      <span class="price-tag">ETHUSDT: <b id="livePriceVal">--</b></span>
+    </header>
+
+    <main>
+      <!-- ETH 15-min Bar Chart -->
+      <section id="eth-chart">
+        <div class="tradingview-widget-container">
+          <div class="tradingview-widget-container__widget"></div>
+          <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
+            {
+              "autosize": true,
+              "symbol": "BINANCE:ETHUSDT",
+              "interval": "1",
+              "timezone": "Etc/UTC",
+              "theme": "light",
+              "style": "1",
+              "locale": "en",
+              "allow_symbol_change": true,
+              "hide_top_toolbar": false,
+              "hide_side_toolbar": false,
+              "withdateranges": true,
+              "details": true,
+              "calendar": false,
+              "show_popup_button": true,
+              "popup_width": "1000",
+              "popup_height": "650",
+              "studies": ["Volume@tv-basicstudies"],
+              "enabled_features": ["countdown"],
+              "overrides": {
+                "paneProperties.legendProperties.showBarChange": true,
+                "scalesProperties.showSeriesLastValue": true
+              },
+              "support_host": "https://www.tradingview.com"
+            }
+          </script>
+        </div>
+      </section>
+
+      <!-- Countdown to Bar Close -->
+      <section id="countdown-bar">
+        <span class="cd-label">Countdown to Bar Close</span>
+        <select id="cdInterval">
+          <option value="0.5">30s</option>
+          <option value="1">1m</option>
+          <option value="3">3m</option>
+          <option value="5">5m</option>
+          <option value="15" selected>15m</option>
+          <option value="30">30m</option>
+          <option value="60">1H</option>
+          <option value="240">4H</option>
+          <option value="1440">1D</option>
+        </select>
+        <span class="cd-time" id="cdTime">--:--:--</span>
+      </section>
+
+      <!-- Target Price Projection -->
+      <section id="target-calc">
+        <h2>Target Price Projection <span id="live-badge"><span class="dot"></span>LIVE</span></h2>
+        <div class="input-row">
+          <label for="targetInput">Target $</label>
+          <input type="number" id="targetInput" placeholder="e.g. 2500" step="0.01" />
+          <button id="calcBtn">Calculate</button>
+          <button id="stopBtn">Stop</button>
+        </div>
+        <div id="projBody">
+          <div class="proj-empty">Enter a target price and click Calculate to see minute-by-minute projections</div>
+        </div>
+      </section>
+    </main>
+    <footer>Powered by Binance US &amp; TradingView</footer>
+
+    <script src="indicators.js"></script>
+    <script>
+      let currentPrice = null;
+      let liveInterval = null;
+      let latestAnalysis = null;
+      let latestTarget = null;
+      let latestHistory = null;
+      let chatHistory = [];
+      let chatBusy = false;
+
+      function dashboardContext() {
+        const price = currentPrice == null ? 'unknown' : `$${currentPrice.toFixed(2)}`;
+        const target = latestTarget == null ? 'not set' : `$${latestTarget.toFixed(2)}`;
+        if (!latestAnalysis) return `ETHUSDT current price: ${price}. Target: ${target}. No projection has been calculated yet.`;
+        const direction = latestTarget >= currentPrice ? 'above (UP-side target)' : 'below (DOWN-side target)';
+        const regime = latestAnalysis.curATR && latestAnalysis.avgATR ? `${(latestAnalysis.curATR / latestAnalysis.avgATR).toFixed(1)}x average ATR` : 'unknown';
+        const probabilities = latestAnalysis.results.slice(0, 5).map(row => `${row.min}m ${row.prob.toFixed(1)}%`).join(', ');
+        return `ETHUSDT current price: ${price}. Target: ${target}, ${direction}. Trend: ${latestAnalysis.trend} (${latestAnalysis.momReturn.toFixed(3)}% over 20 one-minute candles). RSI(14): ${latestAnalysis.curRSI.toFixed(0)}. Volatility: ${regime} of average. Relative volume: ${latestAnalysis.volRatio.toFixed(1)}x. RSI reversion signal: ${latestAnalysis.rsiSignal || 'none'}. Estimated target-touch probabilities: ${probabilities}.`;
+      }
+
+      function addChatMessage(text, role) {
+        const message = document.createElement('div');
+        message.className = `chat-msg ${role}`;
+        message.textContent = text;
+        document.getElementById('chat-messages').appendChild(message);
+        message.scrollIntoView({ block: 'nearest' });
+      }
+
+      function chartSnapshot() {
+        if (!latestHistory || latestHistory.length === 0) return 'Recent ETHUSDT candle data is unavailable right now. Retry shortly or check the Binance data connection.';
+        const recent = latestHistory.slice(-20);
+        const latest = recent[recent.length - 1];
+        const high = Math.max(...recent.map(candle => candle.h));
+        const low = Math.min(...recent.map(candle => candle.l));
+        const movePct = ((latest.c - recent[0].o) / recent[0].o) * 100;
+        const volume = recent.reduce((sum, candle) => sum + candle.v, 0);
+        const trend = movePct > 0.02 ? 'up' : movePct < -0.02 ? 'down' : 'flat';
+        const closes = latestHistory.map(candle => candle.c);
+        const rsi = rollingRSI(closes, RSI_PERIOD).at(-1);
+        const ranges = latestHistory.slice(20).map(candle => ((candle.h - candle.l) / candle.c) * 100);
+        const currentAtr = ranges.slice(-20).reduce((sum, range) => sum + range, 0) / Math.min(ranges.length, 20);
+        const averageAtr = ranges.reduce((sum, range) => sum + range, 0) / Math.max(ranges.length, 1);
+        const atrRatio = averageAtr > 0 ? currentAtr / averageAtr : 1;
+        const volatility = atrRatio >= 1.5 ? 'Hot' : atrRatio >= 0.8 ? 'Normal' : 'Quiet';
+        const averageVolume = latestHistory.reduce((sum, candle) => sum + candle.v, 0) / latestHistory.length;
+        const recentVolume = latestHistory.slice(-5).reduce((sum, candle) => sum + candle.v, 0) / Math.min(latestHistory.length, 5);
+        const volumeRatio = averageVolume > 0 ? recentVolume / averageVolume : 1;
+        const rsiSignal = volatility === 'Normal' && rsi < RSI_OVERSOLD ? 'UP' : volatility === 'Normal' && rsi > RSI_OVERBOUGHT ? 'DOWN' : 'none';
+        const analysisContext = latestAnalysis ? dashboardContext() : 'No target projection has been calculated yet.';
+        return `Recent dashboard chart snapshot (ETHUSDT, 1-minute candles): latest candle O/H/L/C $${latest.o.toFixed(2)} / $${latest.h.toFixed(2)} / $${latest.l.toFixed(2)} / $${latest.c.toFixed(2)}; last 20 candles range $${low.toFixed(2)}-$${high.toFixed(2)}, net move ${movePct >= 0 ? '+' : ''}${movePct.toFixed(3)}%, trend ${trend}, RSI(14) ${rsi.toFixed(1)}, volatility ${volatility} (${atrRatio.toFixed(1)}x average), relative volume ${volumeRatio.toFixed(1)}x, RSI reversion signal ${rsiSignal}, combined volume ${volume.toFixed(2)} ETH. ${analysisContext} The embedded TradingView chart itself is not directly readable; this snapshot comes from the dashboard's Binance candle feed.`;
+      }
+
+      function chatContext() {
+        return {
+          symbol: 'ETHUSDT',
+          candleInterval: '1m',
+          currentPrice,
+          chartSummary: chartSnapshot(),
+          projection: latestAnalysis ? {
+            targetPrice: latestTarget,
+            trend: latestAnalysis.trend,
+            momentumPercent: latestAnalysis.momReturn,
+            rsi14: latestAnalysis.curRSI,
+            volatilityRatio: latestAnalysis.avgATR ? latestAnalysis.curATR / latestAnalysis.avgATR : null,
+            relativeVolume: latestAnalysis.volRatio,
+            targetTouchProbabilities: latestAnalysis.results.map(row => ({ minutes: row.min, percent: row.prob }))
+          } : null,
+          candles: (latestHistory || []).slice(-100).map(candle => ({
+            time: candle.t,
+            open: candle.o,
+            high: candle.h,
+            low: candle.l,
+            close: candle.c,
+            volume: candle.v
+          }))
+        };
+      }
+
+      async function sendAssistantMessage(question) {
+        if (!latestHistory) latestHistory = await fetchHistory();
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: document.getElementById('chat-model-select').value,
+            question,
+            messages: chatHistory.slice(0, -1).slice(-10),
+            context: chatContext()
+          })
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'The model request failed.');
+        return result;
+      }
+
+      async function submitChatQuestion(question) {
+        const cleanQuestion = question.trim();
+        if (!cleanQuestion || chatBusy) return;
+        addChatMessage(cleanQuestion, 'user');
+        chatHistory.push({ role: 'user', content: cleanQuestion });
+        chatBusy = true;
+        document.getElementById('chat-send').disabled = true;
+        try {
+          const result = await sendAssistantMessage(cleanQuestion);
+          chatHistory.push({ role: 'assistant', content: result.answer });
+          addChatMessage(`${result.answer}\n\nModel: ${result.model}`, 'assistant');
+        } catch (error) {
+          addChatMessage(`Chat request failed: ${error.message}`, 'assistant');
+        } finally {
+          chatBusy = false;
+          document.getElementById('chat-send').disabled = false;
+        }
+      }
+
+      const chatToggle = document.getElementById('chat-toggle');
+      const tradingChat = document.getElementById('trading-chat');
+      function setChatOpen(isOpen) {
+        tradingChat.classList.toggle('open', isOpen);
+        chatToggle.classList.toggle('open', isOpen);
+        chatToggle.setAttribute('aria-label', isOpen ? 'Close trading assistant' : 'Open trading assistant');
+        chatToggle.title = isOpen ? 'Close trading assistant' : 'Open trading assistant';
+      }
+      chatToggle.addEventListener('click', () => setChatOpen(!tradingChat.classList.contains('open')));
+      document.getElementById('chat-close').addEventListener('click', () => setChatOpen(false));
+      document.getElementById('chat-form').addEventListener('submit', event => {
+        event.preventDefault();
+        const input = document.getElementById('chat-input');
+        submitChatQuestion(input.value);
+        input.value = '';
+      });
+      document.querySelectorAll('[data-chat-prompt]').forEach(button => button.addEventListener('click', () => submitChatQuestion(button.dataset.chatPrompt)));
+      addChatMessage('Ask about the chart, indicators, candles, or projection. Model answers use the dashboard ETHUSDT one-minute feed and should be independently verified.', 'assistant');
+
+      async function updateChatModelStatus() {
+        const status = document.getElementById('chat-model-status');
+        try {
+          const response = await fetch('/api/chat/models');
+          const result = await response.json();
+          const select = document.getElementById('chat-model-select');
+          select.querySelector('[data-vscode-models]')?.remove();
+          const vscodeModels = result.vscodeModels || [];
+          const vscodeGroup = document.createElement('optgroup');
+          vscodeGroup.label = 'VS Code models';
+          vscodeGroup.dataset.vscodeModels = 'true';
+          for (const model of vscodeModels) {
+            const option = document.createElement('option');
+            option.value = `vscode:${model.id}`;
+            option.textContent = `${model.name} (${model.family})`;
+            vscodeGroup.appendChild(option);
+          }
+          if (vscodeModels.length) select.appendChild(vscodeGroup);
+          select.querySelector('option[value="vscode:auto"]').disabled = vscodeModels.length === 0;
+
+          const connected = [];
+          if (result.providers.vscodeModels) connected.push(`VS Code models: ${vscodeModels.map(model => `${model.name} (${model.vendor})`).join(', ')}`);
+          if (result.providers.openai) connected.push('OpenAI API');
+          if (result.providers.anthropic) connected.push('Anthropic API');
+          status.textContent = connected.length
+            ? `Connected: ${connected.join(' | ')}`
+            : 'Start "Run STO VS Code model bridge" with F5 to use models configured in VS Code, or configure an API key on the server.';
+          if (vscodeModels.length && !result.providers.openai && !result.providers.anthropic && select.value === 'auto') {
+            select.value = 'vscode:auto';
+          }
+        } catch (error) {
+          status.textContent = 'AI model service unavailable. Restart the local server and try again.';
+        }
+      }
+      updateChatModelStatus();
+
+      async function fetchPrice() {
+        try {
+          const r = await fetch('/api/vision/ticker/price?symbol=ETHUSDT');
+          const d = await r.json();
+          currentPrice = parseFloat(d.price);
+          document.getElementById('livePriceVal').textContent = '$' + currentPrice.toFixed(2);
+        } catch(e) {
+          document.getElementById('livePriceVal').textContent = 'N/A';
+        }
+      }
+
+      // Fetch 500 recent 1m ETHUSDT candles (real volume via data-api.binance.vision)
+      async function fetchHistory() {
+        try {
+          const r = await fetch('/api/vision/klines?symbol=ETHUSDT&interval=1m&limit=500');
+          const raw = await r.json();
+          return raw.map(c => ({
+            t: Number(c[0]), o: parseFloat(c[1]), h: parseFloat(c[2]),
+            l: parseFloat(c[3]), c: parseFloat(c[4]),
+            v: parseFloat(c[5])
+          }));
+        } catch(e) { return null; }
+      }
+
+      // Breakout Probability — momentum + volatility + recency weighted
+      // calibrateProb() / CALIBRATION_CURVE / rollingRSI() now live in indicators.js
+      // (shared with indicators.test.js -- see that file for unit tests).
+
+      // RSI(14) mean-reversion signal (Wilder's RSI, causal), gated to the 'Normal'
+      // volatility regime. Validated via backtest.py across 3 independent out-of-sample
+      // weeks: ungated 30/70 calls were only 52-56% (modest). Once restricted to the
+      // 'Normal' ATR regime (same Hot/Normal/Quiet bands as the Volatility badge), accuracy
+      // was 55.8-66.9% in EVERY one of 9 week x horizon checks -- Quiet (~51% avg) and Hot
+      // (~55% avg, high variance) were NOT reliably better than chance and are suppressed.
+      // Trend-following alternatives (raw momentum bias, and an EMA9/21+RSI+MACD
+      // confirmation combo) backtested at ~44-49% (coin-flip or worse) and were rejected.
+      const RSI_PERIOD = 14;
+      const RSI_OVERSOLD = 30;
+      const RSI_OVERBOUGHT = 70;
+      const RSI_UP_ACCURACY = 58;   // UP calls, Normal regime only -- unstable across weeks (45-74%), conservative pooled estimate
+      const RSI_DOWN_ACCURACY = 62; // DOWN calls, Normal regime only -- very stable across all 3 validation weeks (~62% each)
+
+      function breakoutProb(history, targetDist, price) {
+        const n = history.length;
+        const isUp = targetDist >= 0;
+        const targetPct = (Math.abs(targetDist) / price) * 100;
+
+        // Momentum: average return over last 20 candles
+        const momLen = Math.min(20, n);
+        const momSlice = history.slice(-momLen);
+        const momReturn = ((momSlice[momSlice.length-1].c - momSlice[0].o) / momSlice[0].o) * 100;
+        const trend = momReturn > 0.02 ? 'up' : momReturn < -0.02 ? 'down' : 'flat';
+
+        // Rolling 20-bar ATR at each point
+        const atrAt = [];
+        for (let i = 0; i < n; i++) {
+          if (i < 20) { atrAt.push(0); continue; }
+          let sum = 0;
+          for (let j = i - 19; j <= i; j++) sum += ((history[j].h - history[j].l) / history[j].c) * 100;
+          atrAt.push(sum / 20);
+        }
+        const curATR = atrAt[n - 1];
+        const histATR = atrAt.filter(a => a > 0);
+        const avgATR = histATR.length > 0 ? histATR.reduce((s, a) => s + a, 0) / histATR.length : 0;
+        const atrRatio = avgATR > 0 ? curATR / avgATR : 1;
+        const volRegime = atrRatio >= 1.5 ? 'Hot' : atrRatio >= 0.8 ? 'Normal' : 'Quiet';
+
+        // Rolling momentum
+        const momAt = [];
+        for (let i = 0; i < n; i++) {
+          if (i < 20) { momAt.push('flat'); continue; }
+          const ret = ((history[i].c - history[i-20].o) / history[i-20].o) * 100;
+          momAt.push(ret > 0.02 ? 'up' : ret < -0.02 ? 'down' : 'flat');
+        }
+
+        // Volume
+        const avgVol = history.reduce((s, c) => s + c.v, 0) / n;
+        const last5Vol = history.slice(-5).reduce((s, c) => s + c.v, 0) / 5;
+        const volRatio = avgVol > 0 ? last5Vol / avgVol : 1;
+
+        // RSI(14) mean-reversion signal, gated to the 'Normal' volatility regime
+        // (replaces the old momentum-only Bias label, which backtested at coin-flip accuracy).
+        const closes = history.map(cd => cd.c);
+        const rsiAt = rollingRSI(closes, RSI_PERIOD);
+        const curRSI = rsiAt[n - 1];
+        const rawRsiSignal = curRSI < RSI_OVERSOLD ? 'UP' : curRSI > RSI_OVERBOUGHT ? 'DOWN' : null;
+        const rsiSignal = volRegime === 'Normal' ? rawRsiSignal : null;
+        const rsiRegimeFiltered = rawRsiSignal !== null && volRegime !== 'Normal';
+
+        // Recency decay: recent candles get exponentially more weight
+        const decay = 0.006;
+
+        const results = [];
+        for (let m = 1; m <= 15; m++) {
+          let wHitsAll = 0, wTotalAll = 0;
+          let wHitsBest = 0, wTotalBest = 0;
+          const allMoves = [];
+          const bestMoves = [];
+
+          for (let i = 20; i < n - m; i++) {
+            const base = history[i].c;
+            let maxUp = 0, maxDown = 0;
+            for (let j = 1; j <= m; j++) {
+              const fwd = history[i + j];
+              maxUp = Math.max(maxUp, ((fwd.h - base) / base) * 100);
+              maxDown = Math.max(maxDown, ((base - fwd.l) / base) * 100);
+            }
+
+            const move = isUp ? maxUp : maxDown;
+            const reached = move >= targetPct ? 1 : 0;
+            const w = Math.exp(-decay * (n - 1 - i));
+
+            allMoves.push(move);
+            wTotalAll += w;
+            wHitsAll += w * reached;
+
+            // Volatility + momentum match
+            const sameVol = curATR > 0 && atrAt[i] >= curATR * 0.5 && atrAt[i] <= curATR * 2.0;
+            if (momAt[i] === trend && sameVol) {
+              bestMoves.push(move);
+              wTotalBest += w;
+              wHitsBest += w * reached;
+            }
+          }
+
+          allMoves.sort((a, b) => a - b);
+          bestMoves.sort((a, b) => a - b);
+
+          const overallProb = wTotalAll > 0 ? (wHitsAll / wTotalAll) * 100 : 0;
+          const bestProb = bestMoves.length >= 15 ? (wHitsBest / wTotalBest) * 100 : overallProb;
+          const rawProb = bestMoves.length >= 15 ? bestProb * 0.7 + overallProb * 0.3 : overallProb;
+          const prob = calibrateProb(rawProb);
+
+          const src = bestMoves.length >= 15 ? bestMoves : allMoves;
+          const medPct = src.length > 0 ? src[Math.floor(src.length / 2)] : 0;
+          const p90Pct = src.length > 0 ? src[Math.floor(src.length * 0.9)] : 0;
+
+          results.push({
+            min: m,
+            prob,
+            medianMove: (medPct / 100) * price,
+            p90Move: (p90Pct / 100) * price,
+            medPct,
+            p90Pct,
+            samples: bestMoves.length >= 15 ? bestMoves.length : allMoves.length
+          });
+        }
+
+        return { results, trend, momReturn, curRSI, rsiSignal, rsiRegimeFiltered, volRatio, curATR, avgATR, totalSamples: n };
+      }
+
+      // Fetch the current 15m candle's per-minute volume breakdown
+      async function fetch1mVolume() {
+        try {
+          const now = new Date();
+          const minsInto = now.getUTCMinutes() % 15;
+          const limit = Math.max(minsInto + 1, 1);
+          const r = await fetch(`/api/vision/klines?symbol=ETHUSDT&interval=1m&limit=${limit}`);
+          const candles = await r.json();
+          return candles.map(c => {
+            const open = parseFloat(c[1]), high = parseFloat(c[2]), low = parseFloat(c[3]), close = parseFloat(c[4]), vol = parseFloat(c[5]);
+            return { vol, bull: close >= open, high, low, open, close };
+          });
+        } catch(e) { return null; }
+      }
+
+      function formatVol(v) {
+        if (v >= 1000000) return (v / 1000000).toFixed(1) + 'M';
+        if (v >= 1000) return (v / 1000).toFixed(1) + 'K';
+        if (v >= 1) return v.toFixed(0);
+        return v.toFixed(2);
+      }
+
+      function renderProjection(target, price, analysis, volData) {
+        const container = document.getElementById('projBody');
+        const diff = target - price;
+        const isUp = diff >= 0;
+        const distPct = ((Math.abs(diff) / price) * 100).toFixed(3);
+
+        const now = new Date();
+        const secInto15m = (now.getUTCMinutes() % 15) * 60 + now.getUTCSeconds();
+        const currentMin = Math.floor(secInto15m / 60) + 1;
+
+        const { results: stats, trend, momReturn, curRSI, rsiSignal, rsiRegimeFiltered, volRatio, curATR, avgATR, totalSamples } = analysis;
+        const trendLabel = trend === 'up' ? 'Uptrend' : trend === 'down' ? 'Downtrend' : 'Sideways';
+        const trendColor = trend === 'up' ? '#00a35c' : trend === 'down' ? '#ff1744' : '#ff9800';
+        let rsiLabel = 'No signal';
+        if (rsiSignal === 'UP') rsiLabel = `UP (${RSI_UP_ACCURACY}% hist. acc.)`;
+        else if (rsiSignal === 'DOWN') rsiLabel = `DOWN (${RSI_DOWN_ACCURACY}% hist. acc.)`;
+        else if (rsiRegimeFiltered) rsiLabel = 'No signal (unreliable regime)';
+        const rsiColor = rsiSignal === 'UP' ? '#00a35c' : rsiSignal === 'DOWN' ? '#ff1744' : '#787b86';
+        const volStr = volRatio >= 1.3 ? 'High' : volRatio <= 0.7 ? 'Low' : 'Normal';
+        const atrRatio = avgATR > 0 ? curATR / avgATR : 1;
+        const volRegime = atrRatio >= 1.5 ? 'Hot' : atrRatio >= 0.8 ? 'Normal' : 'Quiet';
+        const volRegimeColor = atrRatio >= 1.5 ? '#ff1744' : atrRatio >= 0.8 ? '#787b86' : '#2962ff';
+        const aligned = (isUp && trend === 'up') || (!isUp && trend === 'down');
+
+        // Detect which specific 1m candles touched the target level
+        const crossedMins = new Set();
+        let firstCrossMin = null;
+        if (volData) {
+          for (let i = 0; i < volData.length; i++) {
+            if (volData[i].low <= target && volData[i].high >= target) {
+              crossedMins.add(i + 1);
+              if (firstCrossMin === null) firstCrossMin = i + 1;
+            }
+          }
+        }
+        const currentlyPast = isUp ? price >= target : price <= target;
+
+        let hdr = `<div style="display:flex;flex-wrap:wrap;gap:14px;margin-bottom:12px;font-size:13px;color:#787b86">`;
+        hdr += `<span>Trend: <b style="color:${trendColor}">${trendLabel} (${momReturn>=0?'+':''}${momReturn.toFixed(3)}%)</b></span>`;
+        hdr += `<span>RSI(14): <b>${curRSI.toFixed(0)}</b> Reversion: <b style="color:${rsiColor}">${rsiLabel}</b></span>`;
+        hdr += `<span>Volatility: <b style="color:${volRegimeColor}">${volRegime} (${atrRatio.toFixed(1)}x avg)</b></span>`;
+        hdr += `<span>Vol: <b>${volStr} (${volRatio.toFixed(1)}x)</b></span>`;
+        hdr += `<span>Distance: <b style="color:${isUp?'#00a35c':'#ff1744'}">${isUp?'+':''}$${diff.toFixed(2)} (${distPct}%)</b></span>`;
+        if (currentlyPast) {
+          hdr += `<span style="color:#00a35c;font-weight:700">&#9989; TARGET REACHED &mdash; price is $${Math.abs(diff).toFixed(2)} past</span>`;
+        } else if (firstCrossMin !== null) {
+          hdr += `<span style="color:#ff9800;font-weight:700">&#9888; Touched at min ${firstCrossMin}, retreated $${Math.abs(diff).toFixed(2)}</span>`;
+        } else if (!aligned && trend !== 'flat') {
+          hdr += `<span style="color:#ff9800">&#9888; Target opposes ${trendLabel.toLowerCase()}</span>`;
+        }
+        hdr += `</div>`;
+
+        let html = hdr + '<table class="proj-table"><thead><tr>';
+        html += '<th>Min</th><th>Countdown</th><th>Median Move</th><th>90th %ile</th>';
+        html += '<th>Can Cross?</th><th>Probability</th><th class="bar-cell"></th><th>Status</th><th>Volume</th>';
+        html += '</tr></thead><tbody>';
+
+        let firstTableCross = null;
+        let hasRows = false;
+
+        for (let m = currentMin; m <= 15; m++) {
+          hasRows = true;
+          const s = stats[m - 1];
+          const prob = s.prob;
+
+          // Only mark as crossed if THIS specific minute's candle touched the target
+          const minuteCrossed = crossedMins.has(m);
+
+          let canCross, statusLabel, statusClass;
+          if (minuteCrossed) {
+            canCross = true;
+            if (firstTableCross === null) firstTableCross = m;
+            statusLabel = '&#9989; Crossed';
+            statusClass = 'status-above';
+          } else if (currentlyPast) {
+            canCross = true;
+            if (firstTableCross === null) firstTableCross = m;
+            statusLabel = '&#9989; Past target';
+            statusClass = 'status-above';
+          } else {
+            canCross = prob >= 30 ? true : prob >= 15 && aligned ? true : prob > 0 && !aligned ? false : prob > 0;
+            if (canCross && firstTableCross === null) firstTableCross = m;
+
+            if (prob >= 70) {
+              statusLabel = '&#9989; Very likely';
+              statusClass = 'status-above';
+            } else if (prob >= 50) {
+              statusLabel = '&#9989; Likely';
+              statusClass = 'status-above';
+            } else if (prob >= 30) {
+              statusLabel = aligned ? '&#9888; Possible' : '&#9888; Against trend';
+              statusClass = '';
+            } else if (prob >= 15) {
+              statusLabel = aligned ? '&#10060; Low chance' : '&#10060; Opposes trend';
+              statusClass = 'status-below';
+            } else if (prob > 0) {
+              statusLabel = '&#128308; Unlikely';
+              statusClass = 'status-below';
+            } else {
+              statusLabel = 'Never seen';
+              statusClass = '';
+            }
+          }
+
+          const done = minuteCrossed || currentlyPast;
+          const barColor = done ? '#00a35c' : prob >= 50 ? '#00a35c' : prob >= 30 ? '#ff9800' : prob >= 15 ? '#ff5722' : '#bbb';
+          const crossClass = done ? 'cross-yes' : canCross ? 'cross-yes' : 'cross-no';
+
+          const cdSec = (m * 60) - secInto15m;
+          const cdRemain = cdSec > 0 ? cdSec : 0;
+          const cdMm = Math.floor(cdRemain / 60);
+          const cdSs = cdRemain % 60;
+          const cdStr = `${String(cdMm).padStart(2,'0')}:${String(cdSs).padStart(2,'0')}`;
+
+          let volHtml = '--';
+          if (volData && m <= volData.length) {
+            const v = volData[m - 1];
+            const cls = v.bull ? 'vol-bull' : 'vol-bear';
+            const icon = v.bull ? '&#9650;' : '&#9660;';
+            volHtml = `<span class="${cls}">${icon} ${formatVol(v.vol)}</span>`;
+          }
+
+          html += `<tr>
+            <td class="min-col cd-min" data-min="${m}">${cdStr}</td>
+            <td class="cd-cell" data-min="${m}">${cdStr}</td>
+            <td>$${s.medianMove.toFixed(2)} <span style="color:#787b86;font-size:11px">(${s.medPct.toFixed(3)}%)</span></td>
+            <td>$${s.p90Move.toFixed(2)} <span style="color:#787b86;font-size:11px">(${s.p90Pct.toFixed(3)}%)</span></td>
+            <td class="${crossClass}">${done ? '&#10003; DONE' : canCross ? 'YES' : 'NO'}</td>
+            <td style="font-weight:700">${done ? '100%' : prob.toFixed(1) + '%'}${!done && s.samples < 50 ? ' <span title="Few historical matches — less reliable" style="font-size:10px;color:#ff9800;font-weight:400">&#9888;thin</span>' : ''}</td>
+            <td class="bar-cell"><div class="prob-bar"><div class="prob-bar-fill" style="width:${done ? 100 : Math.min(prob,100)}%;background:${barColor}"></div></div></td>
+            <td class="${statusClass}">${statusLabel}</td>
+            <td>${volHtml}</td>
+          </tr>`;
+        }
+
+        if (!hasRows) {
+          html += '<tr><td colspan="9" style="padding:20px;color:#2962ff;font-weight:600">15-min candle complete — waiting for next candle...</td></tr>';
+        }
+
+        html += '</tbody></table>';
+
+        if (currentlyPast) {
+          html += `<p style="margin-top:14px;font-size:13px;color:#00a35c;font-weight:600">
+            &#9989; Target $${target.toFixed(2)} reached &mdash; price is $${Math.abs(diff).toFixed(2)} past target</p>`;
+        } else if (firstCrossMin !== null) {
+          html += `<p style="margin-top:14px;font-size:13px;color:#ff9800;font-weight:600">
+            &#9888; Target $${target.toFixed(2)} was touched at min ${firstCrossMin} but price retreated.
+            Currently $${Math.abs(diff).toFixed(2)} away (${distPct}%)</p>`;
+        } else if (firstTableCross !== null) {
+          const s15 = stats[14];
+          html += `<p style="margin-top:14px;font-size:13px;color:#2962ff;font-weight:600">
+            &#9889; Earliest cross at min ${firstTableCross} &mdash; ${s15.prob.toFixed(1)}% within 15 min
+            (${s15.samples} matched samples, volatility ${volRegime.toLowerCase()})</p>`;
+        } else if (hasRows) {
+          html += `<p style="margin-top:14px;font-size:13px;color:#ff1744;font-weight:600">
+            Target move of ${distPct}% never achieved in similar momentum across 500-bar history</p>`;
+        }
+
+        container.innerHTML = html;
+      }
+
+      // Tick countdown cells every second without re-fetching
+      function tickTableCountdowns() {
+        const cells = document.querySelectorAll('[data-min]');
+        if (!cells.length) return;
+        const now = new Date();
+        const secInto15m = (now.getUTCMinutes() % 15) * 60 + now.getUTCSeconds();
+        cells.forEach(cell => {
+          const m = parseInt(cell.dataset.min);
+          const cdSec = (m * 60) - secInto15m;
+          const cdRemain = cdSec > 0 ? cdSec : 0;
+          const mm = Math.floor(cdRemain / 60);
+          const ss = cdRemain % 60;
+          cell.textContent = `${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
+        });
+      }
+      setInterval(tickTableCountdowns, 1000);
+
+      document.getElementById('calcBtn').addEventListener('click', async () => {
+        const target = parseFloat(document.getElementById('targetInput').value);
+        if (isNaN(target)) return alert('Enter a valid target price');
+
+        if (liveInterval) { clearInterval(liveInterval); liveInterval = null; }
+
+        document.getElementById('calcBtn').textContent = 'Streaming...';
+        document.getElementById('calcBtn').disabled = true;
+        document.getElementById('stopBtn').style.display = '';
+        document.getElementById('live-badge').style.display = 'flex';
+
+        let histCache = null;
+        let histTick = 0;
+
+        async function tick() {
+          await fetchPrice();
+          if (!histCache || histTick % 12 === 0) {
+            histCache = await fetchHistory();
+            if (histCache) latestHistory = histCache;
+          }
+          const volData = await fetch1mVolume();
+          histTick++;
+          if (currentPrice && histCache) {
+            const analysis = breakoutProb(histCache, target - currentPrice, currentPrice);
+            latestTarget = target;
+            latestAnalysis = analysis;
+            renderProjection(target, currentPrice, analysis, volData);
+          }
+        }
+
+        await tick();
+        liveInterval = setInterval(tick, 5000);
+      });
+
+      document.getElementById('stopBtn').addEventListener('click', () => {
+        if (liveInterval) { clearInterval(liveInterval); liveInterval = null; }
+        document.getElementById('calcBtn').textContent = 'Calculate';
+        document.getElementById('calcBtn').disabled = false;
+        document.getElementById('stopBtn').style.display = 'none';
+        document.getElementById('live-badge').style.display = 'none';
+      });
+
+      document.getElementById('targetInput').addEventListener('input', () => {
+        document.getElementById('calcBtn').textContent = 'Calculate';
+        document.getElementById('calcBtn').disabled = false;
+      });
+
+      document.getElementById('targetInput').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') document.getElementById('calcBtn').click();
+      });
+
+      fetchPrice();
+      fetchHistory().then(history => { if (history) latestHistory = history; });
+      setInterval(fetchPrice, 5000);
+
+      // Countdown to bar close (mirrors Python countdown.py logic)
+      function updateCountdown() {
+        const sel = document.getElementById('cdInterval');
+        const mins = parseInt(sel.value);
+        const now = new Date();
+        let remainMs;
+
+        if (mins === 1440) {
+          // 1-Day: countdown to midnight UTC (same as Python script)
+          const tomorrow = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1));
+          remainMs = tomorrow.getTime() - now.getTime();
+        } else {
+          // Intraday: countdown to next interval boundary
+          const intervalMs = mins * 60 * 1000;
+          remainMs = intervalMs - (now.getTime() % intervalMs);
+        }
+
+        const totalSec = Math.floor(remainMs / 1000);
+        const h = Math.floor(totalSec / 3600);
+        const m = Math.floor((totalSec % 3600) / 60);
+        const s = totalSec % 60;
+        const pad = n => String(n).padStart(2, '0');
+        document.getElementById('cdTime').textContent = `${pad(h)}:${pad(m)}:${pad(s)}`;
+      }
+      updateCountdown();
+      setInterval(updateCountdown, 1000);
+    </script>
+  </body>
+</html>

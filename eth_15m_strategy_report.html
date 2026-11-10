@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ETHUSDT 15-Minute Projection - Strategy and Rules Report</title>
+<style>
+@page { size: A4; margin: 17mm 16mm 18mm; }
+:root { --ink:#17202a; --muted:#5f6b76; --blue:#1769aa; --green:#087f5b; --red:#b42318; --line:#d9e1e8; --soft:#f3f7fa; --gold:#9a6700; }
+* { box-sizing:border-box; }
+body { font-family: Georgia, 'Times New Roman', serif; color:var(--ink); line-height:1.42; font-size:10.5pt; }
+h1,h2,h3 { font-family: Arial, Helvetica, sans-serif; color:#102a43; }
+h1 { font-size:27pt; line-height:1.08; margin:0 0 8px; }
+h2 { font-size:17pt; border-bottom:2px solid var(--blue); padding-bottom:4px; margin:23px 0 10px; page-break-after:avoid; }
+h3 { font-size:12.5pt; margin:15px 0 5px; page-break-after:avoid; }
+p { margin:5px 0 8px; }
+ul,ol { margin:5px 0 8px 20px; padding:0; }
+li { margin:3px 0; }
+.cover { min-height:245mm; display:flex; flex-direction:column; justify-content:center; }
+.kicker { font:700 10pt Arial, sans-serif; letter-spacing:1.4px; color:var(--blue); text-transform:uppercase; }
+.subtitle { font-size:14pt; color:var(--muted); margin:0 0 22px; }
+.meta { border-left:5px solid var(--blue); background:var(--soft); padding:12px 15px; margin:17px 0; }
+.note { background:#fff8e6; border-left:4px solid #d99b00; padding:8px 11px; margin:9px 0; }
+.good { background:#edf9f3; border-left:4px solid var(--green); padding:8px 11px; margin:9px 0; }
+.bad { background:#fff1f0; border-left:4px solid var(--red); padding:8px 11px; margin:9px 0; }
+.code, code { font-family: Consolas, 'Courier New', monospace; font-size:9pt; }
+.formula { background:#f7f9fb; border:1px solid var(--line); padding:9px 12px; font-family:Consolas, 'Courier New', monospace; font-size:9pt; margin:7px 0; white-space:pre-wrap; }
+table { width:100%; border-collapse:collapse; margin:8px 0 12px; font-size:9.2pt; page-break-inside:avoid; }
+th { background:#e9f1f7; color:#102a43; font-family:Arial, sans-serif; text-align:left; }
+th,td { border:1px solid var(--line); padding:5px 6px; vertical-align:top; }
+.small { font-size:8.7pt; color:var(--muted); }
+.tag { display:inline-block; padding:2px 6px; border-radius:3px; background:#e6f0f7; color:#14527f; font:700 8pt Arial, sans-serif; }
+.page-break { page-break-before:always; }
+.footer { margin-top:22px; padding-top:7px; border-top:1px solid var(--line); font-size:8.5pt; color:var(--muted); }
+</style>
+</head>
+<body>
+<section class="cover">
+  <div class="kicker">ETHUSDT / 15-minute horizon</div>
+  <h1>Strategy and Rules Report</h1>
+  <p class="subtitle">What the local dashboard actually uses to estimate a target touch, what was tested, and what was rejected.</p>
+  <div class="meta">
+    <b>Scope:</b> This report documents the code in <span class="code">stock_details.html</span>, <span class="code">indicators.js</span>, <span class="code">backtest.py</span>, <span class="code">walkforward_results.json</span>, and the Pine indicators in this workspace.
+    <br><b>Instrument:</b> ETHUSDT. <b>Live source:</b> Binance Vision through the local Python proxy. <b>Base data:</b> 1-minute OHLCV candles.
+  </div>
+  <div class="note"><b>Important:</b> This is decision-support software, not a guaranteed prediction, trading signal, investment recommendation, or execution system. A probability means historical frequency under similar conditions; it does not mean the target must be reached.</div>
+  <p class="small">Prepared from the implemented repository logic. The live dashboard refreshes price every 5 seconds and refreshes its 500-candle history approximately every 60 seconds while streaming.</p>
+</section>
+
+<h2>1. Executive Summary</h2>
+<p>The dashboard does not use a neural network or a deterministic forecast price. Its primary live engine estimates the probability that ETH will <b>touch a user-entered target level</b> within each minute from the current point through the end of the current 15-minute window.</p>
+<ol>
+<li>Fetch the current ETHUSDT price.</li>
+<li>Fetch up to 500 recent 1-minute candles.</li>
+<li>Measure recent momentum, current volatility, recent volume, and RSI(14).</li>
+<li>Search historical candles for similar momentum and volatility conditions.</li>
+<li>Measure whether the requested percentage move was touched within 1 to 15 minutes after those historical points.</li>
+<li>Weight recent historical examples more heavily, blend matched examples with all examples, and calibrate the resulting probability.</li>
+<li>Display a minute-by-minute probability, median move, 90th-percentile move, and a simple Can Cross decision.</li>
+</ol>
+<div class="good"><b>What is live:</b> target-crossing probability, historical move statistics, trend label, volatility regime, volume label, RSI value, and a gated RSI reversion label.</div>
+<div class="bad"><b>What is not live:</b> the EMA9/EMA21 + MACD strategy, Bollinger strategy, raw momentum bias, Pine Script alerts, order execution, stop-loss management, position sizing, and news/sentiment analysis.</div>
+
+<h2>2. Data and Timing Rules</h2>
+<table><tr><th>Item</th><th>Implemented rule</th></tr>
+<tr><td>Symbol</td><td>ETHUSDT.</td></tr>
+<tr><td>Input candles</td><td>Up to 500 recent 1-minute Binance Vision klines. Each candle contains open, high, low, close, and volume.</td></tr>
+<tr><td>Prediction horizon</td><td>1 through 15 minutes. The 15-minute row represents a touch at any point during the next 15 one-minute candles.</td></tr>
+<tr><td>Target definition</td><td>For an UP target: target distance = target - current price. For a DOWN target: current price - target. The distance is converted to a percentage of current price.</td></tr>
+<tr><td>Historical outcome</td><td>For each historical base close, use the maximum future high excursion for UP or maximum future low excursion for DOWN over the selected horizon.</td></tr>
+<tr><td>Lookahead control</td><td>The live calculation uses only already-fetched history. The causal backtest excludes historical outcomes that would not yet have resolved at the simulated time.</td></tr>
+<tr><td>Refresh</td><td>Price and current-window volume refresh every 5 seconds. The 500-candle history refreshes every 12 ticks, approximately once per minute.</td></tr>
+<tr><td>Time basis</td><td>Countdowns use UTC interval boundaries.</td></tr></table>
+
+<h2>3. Primary Live Strategy: Historical Target-Touch Probability</h2>
+<h3>3.1 Recent momentum classification</h3>
+<p>The dashboard computes the return from the open of the oldest candle in the last 20 candles to the close of the newest candle:</p>
+<div class="formula">momReturn = (last close - first open) / first open * 100
+trend = UP if momReturn &gt; 0.02%
+        DOWN if momReturn &lt; -0.02%
+        FLAT otherwise</div>
+<p>This trend is descriptive context. It is not itself the final target probability.</p>
+<h3>3.2 Volatility regime</h3>
+<p>For every eligible historical point, the code computes a 20-bar range-based ATR percentage:</p>
+<div class="formula">ATR20(i) = average over 20 bars of ((high - low) / close) * 100
+ATR ratio = current ATR20 / average historical ATR20
+Hot    if ATR ratio &gt;= 1.5
+Normal if 0.8 &lt;= ATR ratio &lt; 1.5
+Quiet  if ATR ratio &lt; 0.8</div>
+<p>For a matched historical sample, its ATR must be between 0.5x and 2.0x the current ATR. This prevents comparing an unusually calm historical period with an unusually volatile current period, or vice versa.</p>
+<h3>3.3 Historical matching</h3>
+<p>For each horizon <span class="code">m = 1..15</span>, every historical point after the 20-bar warmup is evaluated. A point is a matched sample when:</p>
+<ul><li>Its 20-bar momentum label equals the current trend label.</li><li>Its ATR is between 0.5x and 2.0x current ATR.</li></ul>
+<p>The matched sample set is used only when it contains at least 15 observations. Otherwise the model falls back to all eligible historical samples.</p>
+<h3>3.4 Recency weighting</h3>
+<p>Recent examples receive exponentially higher weight:</p>
+<div class="formula">weight(i) = exp(-0.006 * (latest index - historical index))</nweighted probability = weighted hits / weighted observations * 100</div>
+<p>The matched probability receives 70% weight and the all-history probability receives 30% weight. With insufficient matched samples, only the all-history estimate is used.</p>
+<h3>3.5 Calibration</h3>
+<p>The raw historical estimate is passed through the piecewise-linear calibration curve in <span class="code">indicators.js</span>. This reduces overconfidence, especially for rare large moves. The deployed curve ends at 77.1%, so even a raw 100% estimate is displayed as 77.1%.</p>
+<table><tr><th>Raw estimate</th><th>Displayed estimate</th><th>Raw estimate</th><th>Displayed estimate</th></tr>
+<tr><td>0.0%</td><td>0.0%</td><td>55.0%</td><td>55.3%</td></tr>
+<tr><td>3.7%</td><td>7.6%</td><td>65.1%</td><td>63.3%</td></tr>
+<tr><td>15.2%</td><td>20.5%</td><td>75.0%</td><td>72.9%</td></tr>
+<tr><td>34.9%</td><td>34.6%</td><td>83.7%</td><td>74.7%</td></tr>
+<tr><td>45.1%</td><td>44.0%</td><td>92.1%</td><td>77.1%</td></tr>
+<tr><td>100.0%</td><td>77.1%</td><td colspan="2">Linear interpolation between points</td></tr></table>
+
+<h2>4. What Each Projection Table Column Means</h2>
+<table><tr><th>Column</th><th>Meaning</th></tr>
+<tr><td>Min</td><td>Minute number inside the current 15-minute window.</td></tr>
+<tr><td>Countdown</td><td>Time remaining until that minute boundary, based on UTC.</td></tr>
+<tr><td>Median Move</td><td>Median historical favorable excursion among the selected source samples.</td></tr>
+<tr><td>90th %ile</td><td>90th-percentile favorable excursion among the selected source samples. This is not a guaranteed maximum.</td></tr>
+<tr><td>Can Cross?</td><td>YES if calibrated probability is at least 30%, or if it is at least 15% and agrees with the recent trend. If probability is below 15%, it is generally NO when it opposes trend.</td></tr>
+<tr><td>Probability</td><td>Calibrated chance that the target level is touched during that horizon, not necessarily closed beyond.</td></tr>
+<tr><td>Status</td><td>Very likely >=70%, Likely >=50%, Possible >=30%, Low chance >=15%, Unlikely &gt;0%, Never seen = 0%.</td></tr>
+<tr><td>Volume</td><td>Current-window 1-minute candle direction and raw volume. It is displayed context, not a term in the primary probability formula.</td></tr></table>
+<div class="note"><b>Touch versus close:</b> A wick through the target counts as a hit. The model does not require a candle close beyond the target.</div>
+
+<div class="page-break"></div>
+<h2>5. Secondary Live Context Signal: RSI(14) Reversion</h2>
+<p>The dashboard calculates causal Wilder RSI(14) from the 1-minute closes:</p>
+<div class="formula">RSI = 100 - 100 / (1 + average gain / average loss)
+UP candidate  if RSI &lt; 30
+DOWN candidate if RSI &gt; 70</div>
+<p>The candidate is only displayed as a signal when the volatility regime is <b>Normal</b>. In Hot or Quiet regimes, the signal is suppressed and shown as “No signal (unreliable regime)” when RSI is extreme.</p>
+<table><tr><th>Condition</th><th>Displayed label</th></tr>
+<tr><td>RSI &lt; 30 and Normal volatility</td><td>UP, with a hard-coded historical accuracy context of 58%.</td></tr>
+<tr><td>RSI &gt; 70 and Normal volatility</td><td>DOWN, with a hard-coded historical accuracy context of 62%.</td></tr>
+<tr><td>RSI between 30 and 70</td><td>No signal.</td></tr>
+<tr><td>Extreme RSI outside Normal volatility</td><td>No signal; regime deemed unreliable.</td></tr></table>
+<p>The RSI signal does not replace the target-touch probability. It is a separate mean-reversion context label. The dashboard intentionally does not create a call when conditions are ordinary.</p>
+
+<h2>6. Strategies Tested in Backtests</h2>
+<h3>6.1 RSI(14) extreme reversion</h3>
+<p>At RSI below 30, predict UP; above 70, predict DOWN. The gated version only permits calls in the Normal ATR regime. The stricter robustness check also tests 20/80 thresholds and 5-minute and 15-minute horizons.</p>
+<h3>6.2 EMA9/EMA21 + MACD trend confirmation</h3>
+<p>Compute EMA(9), EMA(21), and MACD(12,26,9). The walk-forward implementation predicts UP when EMA9 &gt; EMA21 and MACD histogram &gt; 0; it predicts DOWN when both are below. In the standalone combo test, RSI above/below 50 is also required, making it a three-indicator confirmation strategy. No call is made when indicators disagree.</p>
+<h3>6.3 Bollinger Bands(20,2) mean reversion</h3>
+<p>Compute a 20-close simple moving average and bands at two population standard deviations. A close above the upper band predicts DOWN; a close below the lower band predicts UP; otherwise no call.</p>
+<h3>6.4 Historical momentum-only bias</h3>
+<p>The older bias experiment matched the current 20-bar momentum label to historical labels and estimated the next-minute up rate. It labeled Bullish above 55%, Bearish below 45%, and Neutral otherwise. This was not promoted as the live 15-minute engine because short-horizon momentum direction was close to chance.</p>
+<h3>6.5 Baselines</h3>
+<p>Walk-forward comparison includes Always UP, Always DOWN, and deterministic Random 50%. These are sanity checks, not proposed strategies.</p>
+
+<h2>7. Walk-Forward Results in the Repository</h2>
+<p>The saved report uses ten fixed, non-overlapping windows. Each window contains approximately 3,000 one-minute candles, about two days, ending 7, 14, through 70 days before the run. Thresholds are fixed before evaluation.</p>
+<table><tr><th>Strategy</th><th>Calls / coverage</th><th>Accuracy</th><th>Net expectancy after 0.30% cost</th><th>Decision</th></tr>
+<tr><td>Always UP</td><td>29,450 / 100.0%</td><td>49.54%</td><td>-0.2929%</td><td>Baseline only</td></tr>
+<tr><td>Always DOWN</td><td>29,450 / 100.0%</td><td>50.46%</td><td>-0.3071%</td><td>Baseline only</td></tr>
+<tr><td>Random 50%</td><td>29,450 / 100.0%</td><td>50.04%</td><td>-0.3000%</td><td>Baseline only</td></tr>
+<tr><td>RSI raw</td><td>2,480 / 8.42%</td><td>55.04%</td><td>-0.3296%</td><td>Not promoted</td></tr>
+<tr><td>RSI + Normal ATR</td><td>1,058 / 3.59%</td><td>57.28%</td><td>-0.2921%</td><td>Not promoted</td></tr>
+<tr><td>EMA/MACD</td><td>19,317 / 65.59%</td><td>49.23%</td><td>-0.2918%</td><td>Rejected</td></tr></table>
+<div class="bad"><b>Promotion result:</b> DO NOT PROMOTE. The candidate needed positive net expectancy after costs, a 95% confidence lower bound above 50%, at least 50 signals per qualifying window, and most qualifying windows above 50%. The saved result says the gate failed.</div>
+<p>The 0.30% round-trip assumption is explicitly modeled as 0.10% taker fee plus 0.05% slippage per side. These simple close-to-close returns also do not model spread changes, funding, liquidation, partial fills, latency, or stop execution.</p>
+
+<div class="page-break"></div>
+<h2>8. Pine Script Indicators in This Workspace</h2>
+<p>These scripts are separate TradingView indicators. They are not called by the local Python server or by the live HTML probability calculation.</p>
+<table><tr><th>Script</th><th>Rules represented</th><th>Status in local dashboard</th></tr>
+<tr><td><span class="code">eth_signals.pine</span></td><td>EMA9, EMA21, VWAP, RSI14; BUY when volume is above its 20-bar average and candle closes up; SELL when volume is below average and candle closes down.</td><td>Separate TradingView indicator; not wired into dashboard.</td></tr>
+<tr><td><span class="code">eth_event_master.pine</span></td><td>EMA9/21, VWAP, RSI14, Stoch RSI, Bollinger display, trend filters, take-profit zones, volume events, multi-timeframe EMA context.</td><td>Separate TradingView indicator.</td></tr>
+<tr><td><span class="code">eth_event_master_v2.pine</span></td><td>Expanded event dashboard with EMA/VWAP/RSI/Stoch RSI, Bollinger options, RSI take-profit and extreme zones, volume spike alerts, and multi-timeframe context.</td><td>Separate TradingView indicator.</td></tr>
+<tr><td><span class="code">eth_event_master_v3.pine</span></td><td>Streamlined version using EMA9/21, VWAP, RSI14, Stoch RSI, take-profit zones, volume spike, and multi-timeframe EMA context.</td><td>Separate TradingView indicator.</td></tr></table>
+
+<h2>9. Limitations and Correct Interpretation</h2>
+<ul>
+<li><b>Probability is conditional frequency:</b> it estimates historical target touches under approximate similarity, not a future certainty.</li>
+<li><b>Small target distance can look easy:</b> the target percentage is measured from the live price and is sensitive to spread and microstructure.</li>
+<li><b>Wicks count:</b> a brief high or low touching the level is a success in the model.</li>
+<li><b>Sample size matters:</b> the table marks thin samples below 50 as less reliable.</li>
+<li><b>Regime drift:</b> crypto behavior can change; a 500-minute history is not a complete market model.</li>
+<li><b>No execution controls:</b> there is no order placement, stop, take-profit order, position sizing, leverage, or liquidation protection.</li>
+<li><b>No news model:</b> the local assistant does not currently fetch or interpret live news or external sentiment.</li>
+<li><b>Backtest cost sensitivity:</b> the reported candidate returns are negative after the chosen cost assumption, even where directional accuracy exceeds 50%.</li>
+<li><b>Not financial advice:</b> any use should include independent validation, defined risk, and a willingness to lose the entire position.</li>
+</ul>
+
+<h2>10. Practical Reading Checklist</h2>
+<ol>
+<li>Confirm the current price and target direction.</li>
+<li>Check the target distance percentage. A farther target requires a larger historical excursion.</li>
+<li>Check whether trend agrees with the target direction.</li>
+<li>Check volatility regime. Hot and Quiet suppress the RSI reversion label.</li>
+<li>Prefer rows with adequate samples; treat thin samples cautiously.</li>
+<li>Read “Can Cross?” as a historical possibility filter, not an instruction to trade.</li>
+<li>Use a predefined risk limit and do not rely on the dashboard alone.</li>
+</ol>
+<div class="footer">Source implementation: ETH Projection local dashboard. Report generated from repository logic on 2026-09-22. This document describes behavior; it does not certify profitability or future performance.</div>
+</body>
+</html>
