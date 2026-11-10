@@ -1,0 +1,348 @@
+// This Pine Script™ is subject to the Terms of Use at https://www.tradingview.com/pine-script-docs/
+// Educational tool only — NOT financial advice or a prediction system.
+
+//@version=6
+indicator("ETH EVENT MASTER", overlay=true, max_labels_count=500, max_boxes_count=500)
+
+//====================================================
+// INPUTS
+//====================================================
+
+// ---------- CORE TOGGLES ----------
+showSignals        = input.bool(true,  "Show Buy/Sell Labels",   group="Core")
+showVWAP           = input.bool(true,  "Show VWAP",             group="Core")
+showBarColors      = input.bool(true,  "Show Candle Colors",    group="Core")
+showDashboard      = input.bool(true,  "Show Dashboard",        group="Core")
+
+// ---------- OPTIONAL OVERLAYS ----------
+showEMAs           = input.bool(true,  "Show EMAs",             group="Overlays")
+showSMA200         = input.bool(false, "Show SMA 200",          group="Overlays")
+showBB             = input.bool(false, "Show Bollinger Bands",  group="Overlays")
+showTPDots         = input.bool(true,  "Show RSI TP Dots",      group="Overlays")
+
+// ---------- EMA / SMA ----------
+fastEMA            = input.int(9,   "Fast EMA",    group="Moving Averages")
+slowEMA            = input.int(21,  "Slow EMA",    group="Moving Averages")
+smaLen             = input.int(200, "SMA Length",   group="Moving Averages")
+
+// ---------- BB ----------
+bbLen              = input.int(20,   "BB Length",   group="Bollinger Bands")
+bbMult             = input.float(2.0,"BB Mult",     group="Bollinger Bands")
+
+// ---------- RSI ----------
+rsiLen             = input.int(14, "RSI Length",     group="RSI")
+rsiOB              = input.int(70, "RSI Overbought", group="RSI")
+rsiOS              = input.int(30, "RSI Oversold",   group="RSI")
+extremeOB          = input.int(80, "Extreme OB",     group="RSI")
+extremeOS          = input.int(20, "Extreme OS",     group="RSI")
+
+// ---------- STOCH RSI ----------
+stochLen           = input.int(14, "Stoch RSI Length", group="Stoch RSI")
+kLen               = input.int(3,  "K Length",         group="Stoch RSI")
+dLen               = input.int(3,  "D Length",         group="Stoch RSI")
+
+// ---------- VOLUME ----------
+volLen             = input.int(20,    "Volume MA Length",  group="Volume")
+volMult            = input.float(1.2, "Volume Multiplier", group="Volume")
+
+// ---------- UT BOT ----------
+utA                = input.float(1.0, "UT Sensitivity",  group="UT Bot")
+utATR              = input.int(10,    "UT ATR Period",    group="UT Bot")
+
+// ---------- FILTER TOGGLES ----------
+useTrendFilter     = input.bool(false, "Use Trend Filter",  group="Filters")
+useVolumeFilter    = input.bool(false, "Use Volume Filter",  group="Filters")
+useStochFilter     = input.bool(false, "Use Stoch Filter",   group="Filters")
+
+// ---------- SESSION BOXES ----------
+showSessionBoxes   = input.bool(true,  "Show Session Boxes",  group="Sessions")
+showAsiaBox        = input.bool(true,  "Show Asia Box",       group="Sessions")
+showLondonBox      = input.bool(true,  "Show London Box",     group="Sessions")
+showNYBox          = input.bool(true,  "Show New York Box",   group="Sessions")
+asiaSession        = input.session("1700-0000", "Asia Session",   group="Sessions")
+londonSession      = input.session("0100-0500", "London Session", group="Sessions")
+nySession          = input.session("0630-0930", "NY Session",     group="Sessions")
+sessionTZ          = input.string("America/Los_Angeles", "Timezone", group="Sessions")
+asiaColor          = input.color(color.blue,   "Asia Color",   group="Sessions")
+londonColor        = input.color(color.orange, "London Color", group="Sessions")
+nyColor            = input.color(color.green,  "NY Color",     group="Sessions")
+sessionLineW       = input.int(2, "Line Width", minval=1, maxval=5, group="Sessions")
+extendLines        = input.bool(true, "Extend Lines", group="Sessions")
+
+//====================================================
+// CORE CALCULATIONS
+//====================================================
+
+// --- Moving Averages ---
+emaFast  = ta.ema(close, fastEMA)
+emaSlow  = ta.ema(close, slowEMA)
+sma200   = ta.sma(close, smaLen)
+
+// --- VWAP ---
+vwapVal  = ta.vwap(hlc3)
+
+// --- RSI ---
+rsiVal   = ta.rsi(close, rsiLen)
+
+// --- Stoch RSI ---
+rsiSrc   = ta.rsi(close, stochLen)
+stochRSI = ta.stoch(rsiSrc, rsiSrc, rsiSrc, stochLen)
+k        = ta.sma(stochRSI, kLen)
+d        = ta.sma(k, dLen)
+
+// --- Volume ---
+volMA        = ta.sma(volume, volLen)
+strongVolume = volume > volMA * volMult
+
+// --- Bollinger Bands ---
+bbBasis = ta.sma(close, bbLen)
+bbDev   = bbMult * ta.stdev(close, bbLen)
+bbUpper = bbBasis + bbDev
+bbLower = bbBasis - bbDev
+
+//====================================================
+// TREND ENGINE
+//====================================================
+
+bullTrend = emaFast > emaSlow and close > vwapVal and rsiVal > 50
+bearTrend = emaFast < emaSlow and close < vwapVal and rsiVal < 50
+
+//====================================================
+// STOCH CONFIRMATION
+//====================================================
+
+stochBull = ta.crossover(k, d)  and k < 40
+stochBear = ta.crossunder(k, d) and k > 60
+
+//====================================================
+// UT BOT ENGINE
+//====================================================
+
+xATR  = ta.atr(utATR)
+nLoss = utA * xATR
+
+var float trailStop = na
+prevStop = nz(trailStop[1])
+
+if close > prevStop and close[1] > prevStop
+    trailStop := math.max(prevStop, close - nLoss)
+else if close < prevStop and close[1] < prevStop
+    trailStop := math.min(prevStop, close + nLoss)
+else
+    trailStop := close > prevStop ? close - nLoss : close + nLoss
+
+utBuy  = ta.crossover(close, trailStop)
+utSell = ta.crossunder(close, trailStop)
+utBull = close > trailStop
+utBear = close < trailStop
+
+//====================================================
+// FILTER CONDITIONS
+//====================================================
+
+trendLongOK  = not useTrendFilter  or bullTrend
+trendShortOK = not useTrendFilter  or bearTrend
+volumeOK     = not useVolumeFilter or strongVolume
+stochLongOK  = not useStochFilter  or stochBull
+stochShortOK = not useStochFilter  or stochBear
+
+//====================================================
+// FINAL SIGNALS
+//====================================================
+
+longSignal  = utBuy  and trendLongOK  and volumeOK and stochLongOK
+shortSignal = utSell and trendShortOK and volumeOK and stochShortOK
+
+//====================================================
+// RSI TAKE-PROFIT ZONES
+//====================================================
+
+longTP      = bullTrend and rsiVal >= rsiOB
+shortTP     = bearTrend and rsiVal <= rsiOS
+extremeBull = bullTrend and rsiVal >= extremeOB
+extremeBear = bearTrend and rsiVal <= extremeOS
+
+//====================================================
+// SESSION BOXES
+//====================================================
+
+inAsia    = not na(time(timeframe.period, asiaSession,   sessionTZ))
+inLondon  = not na(time(timeframe.period, londonSession, sessionTZ))
+inNY      = not na(time(timeframe.period, nySession,     sessionTZ))
+
+asiaStart   = inAsia   and not inAsia[1]
+londonStart = inLondon and not inLondon[1]
+nyStart     = inNY     and not inNY[1]
+
+var float asiaH = na, var float asiaL = na
+var float lonH  = na, var float lonL  = na
+var float nyH   = na, var float nyL   = na
+
+var line asiaHL = na, var line asiaLL = na
+var line lonHL  = na, var line lonLL  = na
+var line nyHL   = na, var line nyLL   = na
+
+ext = extendLines ? extend.right : extend.none
+
+// --- Asia ---
+if showSessionBoxes and showAsiaBox and asiaStart
+    asiaH := high
+    asiaL := low
+    line.delete(asiaHL)
+    line.delete(asiaLL)
+    asiaHL := line.new(bar_index, asiaH, bar_index+1, asiaH, color=asiaColor, width=sessionLineW, extend=ext)
+    asiaLL := line.new(bar_index, asiaL, bar_index+1, asiaL, color=asiaColor, width=sessionLineW, extend=ext)
+
+if showSessionBoxes and showAsiaBox and inAsia
+    asiaH := math.max(asiaH, high)
+    asiaL := math.min(asiaL, low)
+    line.set_y1(asiaHL, asiaH), line.set_y2(asiaHL, asiaH)
+    line.set_y1(asiaLL, asiaL), line.set_y2(asiaLL, asiaL)
+
+// --- London ---
+if showSessionBoxes and showLondonBox and londonStart
+    lonH := high
+    lonL := low
+    line.delete(lonHL)
+    line.delete(lonLL)
+    lonHL := line.new(bar_index, lonH, bar_index+1, lonH, color=londonColor, width=sessionLineW, extend=ext)
+    lonLL := line.new(bar_index, lonL, bar_index+1, lonL, color=londonColor, width=sessionLineW, extend=ext)
+
+if showSessionBoxes and showLondonBox and inLondon
+    lonH := math.max(lonH, high)
+    lonL := math.min(lonL, low)
+    line.set_y1(lonHL, lonH), line.set_y2(lonHL, lonH)
+    line.set_y1(lonLL, lonL), line.set_y2(lonLL, lonL)
+
+// --- New York ---
+if showSessionBoxes and showNYBox and nyStart
+    nyH := high
+    nyL := low
+    line.delete(nyHL)
+    line.delete(nyLL)
+    nyHL := line.new(bar_index, nyH, bar_index+1, nyH, color=nyColor, width=sessionLineW, extend=ext)
+    nyLL := line.new(bar_index, nyL, bar_index+1, nyL, color=nyColor, width=sessionLineW, extend=ext)
+
+if showSessionBoxes and showNYBox and inNY
+    nyH := math.max(nyH, high)
+    nyL := math.min(nyL, low)
+    line.set_y1(nyHL, nyH), line.set_y2(nyHL, nyH)
+    line.set_y1(nyLL, nyL), line.set_y2(nyLL, nyL)
+
+// --- Session backgrounds ---
+bgcolor(showSessionBoxes and showAsiaBox   and inAsia   ? color.new(asiaColor,   92) : na)
+bgcolor(showSessionBoxes and showLondonBox and inLondon ? color.new(londonColor, 92) : na)
+bgcolor(showSessionBoxes and showNYBox     and inNY     ? color.new(nyColor,     92) : na)
+
+//====================================================
+// PLOTS
+//====================================================
+
+// --- VWAP ---
+plot(showVWAP ? vwapVal : na, "VWAP", color.new(color.black, 0), 3)
+
+// --- EMAs ---
+plot(showEMAs ? emaFast : na, "EMA Fast", color.lime,  2)
+plot(showEMAs ? emaSlow : na, "EMA Slow", color.red,   2)
+
+// --- SMA 200 ---
+plot(showSMA200 ? sma200 : na, "SMA 200", color.white, 3)
+
+// --- Bollinger Bands ---
+plot(showBB ? bbUpper : na, "BB Upper", color.gray, 1)
+plot(showBB ? bbLower : na, "BB Lower", color.gray, 1)
+plot(showBB ? bbBasis : na, "BB Mid",   color.gray, 1, plot.style_circles)
+
+// --- UT Bot trailing stop ---
+plot(trailStop, "UT Trail", utBull ? color.new(color.lime, 60) : color.new(color.red, 60), 1, plot.style_stepline_diamond)
+
+//====================================================
+// BAR COLORS
+//====================================================
+
+color barCol = na
+if bullTrend
+    barCol := color.new(color.lime, 75)
+if bearTrend
+    barCol := color.new(color.red, 75)
+if extremeBull
+    barCol := color.new(color.green, 45)
+if extremeBear
+    barCol := color.new(color.maroon, 45)
+
+barcolor(showBarColors ? barCol : na)
+
+//====================================================
+// BUY / SELL LABELS
+//====================================================
+
+plotshape(showSignals and longSignal,  "BUY",  shape.labelup,   location.belowbar, color.lime, text="BUY",  textcolor=color.black, size=size.small)
+plotshape(showSignals and shortSignal, "SELL", shape.labeldown, location.abovebar, color.red,  text="SELL", textcolor=color.white, size=size.small)
+
+//====================================================
+// TP DOTS
+//====================================================
+
+plotshape(showTPDots and longTP,  "LONG TP",  shape.circle, location.abovebar, color.green, size=size.tiny)
+plotshape(showTPDots and shortTP, "SHORT TP", shape.circle, location.belowbar, color.red,   size=size.tiny)
+
+//====================================================
+// MTF TREND (multi-timeframe dashboard)
+//====================================================
+
+getTrend(tf) =>
+    fastTF = request.security(syminfo.tickerid, tf, ta.ema(close, fastEMA))
+    slowTF = request.security(syminfo.tickerid, tf, ta.ema(close, slowEMA))
+    fastTF > slowTF ? 1 : fastTF < slowTF ? -1 : 0
+
+trend1  = getTrend("1")
+trend5  = getTrend("5")
+trend15 = getTrend("15")
+trend1H = getTrend("60")
+trend4H = getTrend("240")
+trendD  = getTrend("D")
+
+trendText(v) => v == 1 ? "BULL" : v == -1 ? "BEAR" : "—"
+trendCol(v)  => v == 1 ? color.lime : v == -1 ? color.red : color.gray
+
+//====================================================
+// DASHBOARD
+//====================================================
+
+var table dash = table.new(position.top_right, 9, 2)
+
+if barstate.islast and showDashboard
+    // Header row
+    headers  = array.from("1M", "5M", "15M", "1H", "4H", "D", "UT", "VOL", "TP")
+    trends   = array.from(trend1, trend5, trend15, trend1H, trend4H, trendD)
+
+    for i = 0 to 5
+        table.cell(dash, i, 0, array.get(headers, i), bgcolor=color.black, text_color=color.white, text_size=size.small)
+        table.cell(dash, i, 1, trendText(array.get(trends, i)), bgcolor=trendCol(array.get(trends, i)), text_color=color.black, text_size=size.small)
+
+    // UT Bot status
+    table.cell(dash, 6, 0, "UT",  bgcolor=color.black, text_color=color.white, text_size=size.small)
+    table.cell(dash, 6, 1, utBull ? "BULL" : utBear ? "BEAR" : "WAIT",
+         bgcolor=utBull ? color.lime : utBear ? color.red : color.gray,
+         text_color=color.black, text_size=size.small)
+
+    // Volume status
+    table.cell(dash, 7, 0, "VOL", bgcolor=color.black, text_color=color.white, text_size=size.small)
+    table.cell(dash, 7, 1, strongVolume ? "HIGH" : "LOW",
+         bgcolor=strongVolume ? color.orange : color.gray,
+         text_color=color.black, text_size=size.small)
+
+    // TP status
+    table.cell(dash, 8, 0, "TP",  bgcolor=color.black, text_color=color.white, text_size=size.small)
+    table.cell(dash, 8, 1, longTP ? "LONG TP" : shortTP ? "SHORT TP" : "HOLD",
+         bgcolor=longTP ? color.green : shortTP ? color.red : color.gray,
+         text_color=color.white, text_size=size.small)
+
+//====================================================
+// ALERTS
+//====================================================
+
+alertcondition(longSignal,  "BUY ALERT",  "ETH EVENT MASTER — BUY signal")
+alertcondition(shortSignal, "SELL ALERT", "ETH EVENT MASTER — SELL signal")
+alertcondition(longTP,      "LONG TP",    "ETH EVENT MASTER — Long take-profit zone")
+alertcondition(shortTP,     "SHORT TP",   "ETH EVENT MASTER — Short take-profit zone")

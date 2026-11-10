@@ -1,0 +1,2031 @@
+{
+  "symbol": "ETHUSDT",
+  "horizon_minutes": 15,
+  "window_days": 2,
+  "offset_days": [
+    7,
+    14,
+    21,
+    28,
+    35,
+    42,
+    49,
+    56,
+    63,
+    70
+  ],
+  "cost_assumption": "0.10% taker fee + 0.05% slippage per side = 0.30% round trip",
+  "lookahead_policy": "Indicators use data through T; outcome uses close at T+15; thresholds fixed before run.",
+  "windows": [
+    {
+      "offset_days": 7,
+      "candles": 3000,
+      "strategies": {
+        "always_up": {
+          "total_points": 2945,
+          "signals": 2945,
+          "coverage_pct": 100.0,
+          "correct": 1423,
+          "accuracy_pct": 48.31918505942275,
+          "accuracy_ci95_pct": [
+            46.51771277787596,
+            50.125036700427664
+          ],
+          "up_precision_pct": 48.31918505942275,
+          "down_precision_pct": null,
+          "up_signals": 2945,
+          "down_signals": 0,
+          "net_expectancy_pct": -0.30182074957661864,
+          "profit_factor": 0.03220790980601028,
+          "max_drawdown_pct": 888.8621075031432,
+          "max_losing_streak": 316,
+          "cost_pct_round_trip": 0.3
+        },
+        "always_down": {
+          "total_points": 2945,
+          "signals": 2945,
+          "coverage_pct": 100.0,
+          "correct": 1522,
+          "accuracy_pct": 51.68081494057725,
+          "accuracy_ci95_pct": [
+            49.874963299572336,
+            53.482287222124036
+          ],
+          "up_precision_pct": null,
+          "down_precision_pct": 51.68081494057725,
+          "up_signals": 0,
+          "down_signals": 2945,
+          "net_expectancy_pct": -0.29817925042338134,
+          "profit_factor": 0.028349887609716087,
+          "max_drawdown_pct": 878.1378924968566,
+          "max_losing_streak": 576,
+          "cost_pct_round_trip": 0.3
+        },
+        "random_50": {
+          "total_points": 2945,
+          "signals": 2945,
+          "coverage_pct": 100.0,
+          "correct": 1477,
+          "accuracy_pct": 50.1528013582343,
+          "accuracy_ci95_pct": [
+            48.34793009768193,
+            51.95727449519957
+          ],
+          "up_precision_pct": 48.472505091649694,
+          "down_precision_pct": 51.83423913043478,
+          "up_signals": 1473,
+          "down_signals": 1472,
+          "net_expectancy_pct": -0.30018080084235854,
+          "profit_factor": 0.030597646856532195,
+          "max_drawdown_pct": 884.0324584807457,
+          "max_losing_streak": 247,
+          "cost_pct_round_trip": 0.3
+        },
+        "rsi": {
+          "total_points": 2945,
+          "signals": 222,
+          "coverage_pct": 7.538200339558573,
+          "correct": 127,
+          "accuracy_pct": 57.20720720720721,
+          "accuracy_ci95_pct": [
+            50.630400659589,
+            63.538822371066125
+          ],
+          "up_precision_pct": 46.36363636363636,
+          "down_precision_pct": 67.85714285714286,
+          "up_signals": 110,
+          "down_signals": 112,
+          "net_expectancy_pct": -0.27518534260925387,
+          "profit_factor": 0.05839860912556217,
+          "max_drawdown_pct": 61.95667059215669,
+          "max_losing_streak": 90,
+          "cost_pct_round_trip": 0.3
+        },
+        "rsi_normal": {
+          "total_points": 2945,
+          "signals": 113,
+          "coverage_pct": 3.837011884550085,
+          "correct": 74,
+          "accuracy_pct": 65.48672566371681,
+          "accuracy_ci95_pct": [
+            56.34212472892778,
+            73.61295976152768
+          ],
+          "up_precision_pct": 59.183673469387756,
+          "down_precision_pct": 70.3125,
+          "up_signals": 49,
+          "down_signals": 64,
+          "net_expectancy_pct": -0.2525447068041662,
+          "profit_factor": 0.02820132380200222,
+          "max_drawdown_pct": 28.537551868870786,
+          "max_losing_streak": 49,
+          "cost_pct_round_trip": 0.3
+        },
+        "ema_macd": {
+          "total_points": 2945,
+          "signals": 1916,
+          "coverage_pct": 65.05942275042445,
+          "correct": 915,
+          "accuracy_pct": 47.75574112734864,
+          "accuracy_ci95_pct": [
+            45.52585551157674,
+            49.99460826001776
+          ],
+          "up_precision_pct": 45.2894438138479,
+          "down_precision_pct": 49.85507246376812,
+          "up_signals": 881,
+          "down_signals": 1035,
+          "net_expectancy_pct": -0.30314537734195285,
+          "profit_factor": 0.040584665565095865,
+          "max_drawdown_pct": 580.8265429871807,
+          "max_losing_streak": 384,
+          "cost_pct_round_trip": 0.3
+        }
+      },
+      "regimes": {
+        "Quiet": {
+          "total_points": 1084,
+          "signals": 84,
+          "coverage_pct": 7.7490774907749085,
+          "correct": 35,
+          "accuracy_pct": 41.66666666666667,
+          "accuracy_ci95_pct": [
+            31.71466976499569,
+            52.34755132387336
+          ],
+          "up_precision_pct": 20.930232558139537,
+          "down_precision_pct": 63.41463414634146,
+          "up_signals": 43,
+          "down_signals": 41,
+          "net_expectancy_pct": -0.35466610155234385,
+          "profit_factor": 0.002744743895337611,
+          "max_drawdown_pct": 29.791952530396877,
+          "max_losing_streak": 46,
+          "cost_pct_round_trip": 0.3
+        },
+        "Normal": {
+          "total_points": 1568,
+          "signals": 113,
+          "coverage_pct": 7.206632653061225,
+          "correct": 74,
+          "accuracy_pct": 65.48672566371681,
+          "accuracy_ci95_pct": [
+            56.34212472892778,
+            73.61295976152768
+          ],
+          "up_precision_pct": 59.183673469387756,
+          "down_precision_pct": 70.3125,
+          "up_signals": 49,
+          "down_signals": 64,
+          "net_expectancy_pct": -0.2525447068041662,
+          "profit_factor": 0.02820132380200222,
+          "max_drawdown_pct": 28.537551868870786,
+          "max_losing_streak": 49,
+          "cost_pct_round_trip": 0.3
+        },
+        "Hot": {
+          "total_points": 293,
+          "signals": 25,
+          "coverage_pct": 8.532423208191126,
+          "correct": 18,
+          "accuracy_pct": 72.0,
+          "accuracy_ci95_pct": [
+            52.423028103441695,
+            85.71632616261843
+          ],
+          "up_precision_pct": 72.22222222222221,
+          "down_precision_pct": 71.42857142857143,
+          "up_signals": 18,
+          "down_signals": 7,
+          "net_expectancy_pct": -0.11046566639946792,
+          "profit_factor": 0.5103818032637486,
+          "max_drawdown_pct": 4.15642179069665,
+          "max_losing_streak": 7,
+          "cost_pct_round_trip": 0.3
+        }
+      }
+    },
+    {
+      "offset_days": 14,
+      "candles": 3000,
+      "strategies": {
+        "always_up": {
+          "total_points": 2945,
+          "signals": 2945,
+          "coverage_pct": 100.0,
+          "correct": 1423,
+          "accuracy_pct": 48.31918505942275,
+          "accuracy_ci95_pct": [
+            46.51771277787596,
+            50.125036700427664
+          ],
+          "up_precision_pct": 48.31918505942275,
+          "down_precision_pct": null,
+          "up_signals": 2945,
+          "down_signals": 0,
+          "net_expectancy_pct": -0.317608189521072,
+          "profit_factor": 0.030008559726141217,
+          "max_drawdown_pct": 935.3561181395571,
+          "max_losing_streak": 191,
+          "cost_pct_round_trip": 0.3
+        },
+        "always_down": {
+          "total_points": 2945,
+          "signals": 2945,
+          "coverage_pct": 100.0,
+          "correct": 1522,
+          "accuracy_pct": 51.68081494057725,
+          "accuracy_ci95_pct": [
+            49.874963299572336,
+            53.482287222124036
+          ],
+          "up_precision_pct": null,
+          "down_precision_pct": 51.68081494057725,
+          "up_signals": 0,
+          "down_signals": 2945,
+          "net_expectancy_pct": -0.2823918104789279,
+          "profit_factor": 0.06029897668603442,
+          "max_drawdown_pct": 831.9289586707852,
+          "max_losing_streak": 367,
+          "cost_pct_round_trip": 0.3
+        },
+        "random_50": {
+          "total_points": 2945,
+          "signals": 2945,
+          "coverage_pct": 100.0,
+          "correct": 1481,
+          "accuracy_pct": 50.288624787775895,
+          "accuracy_ci95_pct": [
+            48.48359819573628,
+            52.09289936859543
+          ],
+          "up_precision_pct": 48.60828241683639,
+          "down_precision_pct": 51.97010869565217,
+          "up_signals": 1473,
+          "down_signals": 1472,
+          "net_expectancy_pct": -0.2996146872225408,
+          "profit_factor": 0.044868604806766514,
+          "max_drawdown_pct": 882.365253870383,
+          "max_losing_streak": 159,
+          "cost_pct_round_trip": 0.3
+        },
+        "rsi": {
+          "total_points": 2945,
+          "signals": 248,
+          "coverage_pct": 8.421052631578947,
+          "correct": 142,
+          "accuracy_pct": 57.25806451612904,
+          "accuracy_ci95_pct": [
+            51.036395281833244,
+            63.25830424358273
+          ],
+          "up_precision_pct": 53.333333333333336,
+          "down_precision_pct": 65.06024096385542,
+          "up_signals": 165,
+          "down_signals": 83,
+          "net_expectancy_pct": -0.2415810481834034,
+          "profit_factor": 0.11262114568058113,
+          "max_drawdown_pct": 60.08513477343733,
+          "max_losing_streak": 42,
+          "cost_pct_round_trip": 0.3
+        },
+        "rsi_normal": {
+          "total_points": 2945,
+          "signals": 130,
+          "coverage_pct": 4.4142614601018675,
+          "correct": 70,
+          "accuracy_pct": 53.84615384615385,
+          "accuracy_ci95_pct": [
+            45.289218167890596,
+            62.18230040331596
+          ],
+          "up_precision_pct": 42.22222222222222,
+          "down_precision_pct": 80.0,
+          "up_signals": 90,
+          "down_signals": 40,
+          "net_expectancy_pct": -0.2790960781177256,
+          "profit_factor": 0.02141748675059081,
+          "max_drawdown_pct": 36.455524979257625,
+          "max_losing_streak": 34,
+          "cost_pct_round_trip": 0.3
+        },
+        "ema_macd": {
+          "total_points": 2945,
+          "signals": 1887,
+          "coverage_pct": 64.07470288624788,
+          "correct": 972,
+          "accuracy_pct": 51.51033386327504,
+          "accuracy_ci95_pct": [
+            49.25457923600759,
+            53.759951436471795
+          ],
+          "up_precision_pct": 49.23076923076923,
+          "down_precision_pct": 53.63357215967247,
+          "up_signals": 910,
+          "down_signals": 977,
+          "net_expectancy_pct": -0.3003941369591034,
+          "profit_factor": 0.048386432220209864,
+          "max_drawdown_pct": 566.9114572414526,
+          "max_losing_streak": 198,
+          "cost_pct_round_trip": 0.3
+        }
+      },
+      "regimes": {
+        "Quiet": {
+          "total_points": 1155,
+          "signals": 68,
+          "coverage_pct": 5.887445887445888,
+          "correct": 28,
+          "accuracy_pct": 41.17647058823529,
+          "accuracy_ci95_pct": [
+            30.25783771245051,
+            53.03874810969154
+          ],
+          "up_precision_pct": 36.666666666666664,
+          "down_precision_pct": 44.73684210526316,
+          "up_signals": 30,
+          "down_signals": 38,
+          "net_expectancy_pct": -0.3574647508902154,
+          "profit_factor": 0.006532016931604567,
+          "max_drawdown_pct": 24.307603060534646,
+          "max_losing_streak": 56,
+          "cost_pct_round_trip": 0.3
+        },
+        "Normal": {
+          "total_points": 1425,
+          "signals": 130,
+          "coverage_pct": 9.12280701754386,
+          "correct": 70,
+          "accuracy_pct": 53.84615384615385,
+          "accuracy_ci95_pct": [
+            45.289218167890596,
+            62.18230040331596
+          ],
+          "up_precision_pct": 42.22222222222222,
+          "down_precision_pct": 80.0,
+          "up_signals": 90,
+          "down_signals": 40,
+          "net_expectancy_pct": -0.2790960781177256,
+          "profit_factor": 0.02141748675059081,
+          "max_drawdown_pct": 36.455524979257625,
+          "max_losing_streak": 34,
+          "cost_pct_round_trip": 0.3
+        },
+        "Hot": {
+          "total_points": 365,
+          "signals": 50,
+          "coverage_pct": 13.698630136986301,
+          "correct": 44,
+          "accuracy_pct": 88.0,
+          "accuracy_ci95_pct": [
+            76.19492111337642,
+            94.38247628937535
+          ],
+          "up_precision_pct": 86.66666666666667,
+          "down_precision_pct": 100.0,
+          "up_signals": 45,
+          "down_signals": 5,
+          "net_expectancy_pct": 0.013559865327098533,
+          "profit_factor": 1.1135323739843541,
+          "max_drawdown_pct": 4.9575542202398735,
+          "max_losing_streak": 16,
+          "cost_pct_round_trip": 0.3
+        }
+      }
+    },
+    {
+      "offset_days": 21,
+      "candles": 3000,
+      "strategies": {
+        "always_up": {
+          "total_points": 2945,
+          "signals": 2945,
+          "coverage_pct": 100.0,
+          "correct": 1438,
+          "accuracy_pct": 48.82852292020374,
+          "accuracy_ci95_pct": [
+            47.02586320188992,
+            50.634234919352
+          ],
+          "up_precision_pct": 48.82852292020374,
+          "down_precision_pct": null,
+          "up_signals": 2945,
+          "down_signals": 0,
+          "net_expectancy_pct": -0.3004195607415143,
+          "profit_factor": 0.04501159795944794,
+          "max_drawdown_pct": 884.8665022403209,
+          "max_losing_streak": 219,
+          "cost_pct_round_trip": 0.3
+        },
+        "always_down": {
+          "total_points": 2945,
+          "signals": 2945,
+          "coverage_pct": 100.0,
+          "correct": 1507,
+          "accuracy_pct": 51.17147707979627,
+          "accuracy_ci95_pct": [
+            49.36576508064801,
+            52.97413679811008
+          ],
+          "up_precision_pct": null,
+          "down_precision_pct": 51.17147707979627,
+          "up_signals": 0,
+          "down_signals": 2945,
+          "net_expectancy_pct": -0.2995804392584857,
+          "profit_factor": 0.043918391796241546,
+          "max_drawdown_pct": 882.2643936162391,
+          "max_losing_streak": 300,
+          "cost_pct_round_trip": 0.3
+        },
+        "random_50": {
+          "total_points": 2945,
+          "signals": 2945,
+          "coverage_pct": 100.0,
+          "correct": 1480,
+          "accuracy_pct": 50.25466893039049,
+          "accuracy_ci95_pct": [
+            48.44967992432997,
+            52.05899439713918
+          ],
+          "up_precision_pct": 49.08350305498982,
+          "down_precision_pct": 51.4266304347826,
+          "up_signals": 1473,
+          "down_signals": 1472,
+          "net_expectancy_pct": -0.3017139807393924,
+          "profit_factor": 0.04262465745629576,
+          "max_drawdown_pct": 888.5476732775089,
+          "max_losing_streak": 142,
+          "cost_pct_round_trip": 0.3
+        },
+        "rsi": {
+          "total_points": 2945,
+          "signals": 201,
+          "coverage_pct": 6.825127334465194,
+          "correct": 122,
+          "accuracy_pct": 60.69651741293532,
+          "accuracy_ci95_pct": [
+            53.804166185939785,
+            67.18766359863523
+          ],
+          "up_precision_pct": 68.42105263157895,
+          "down_precision_pct": 56.00000000000001,
+          "up_signals": 76,
+          "down_signals": 125,
+          "net_expectancy_pct": -0.2787005681591772,
+          "profit_factor": 0.04486264629420969,
+          "max_drawdown_pct": 56.01881419999462,
+          "max_losing_streak": 73,
+          "cost_pct_round_trip": 0.3
+        },
+        "rsi_normal": {
+          "total_points": 2945,
+          "signals": 98,
+          "coverage_pct": 3.3276740237691005,
+          "correct": 69,
+          "accuracy_pct": 70.40816326530613,
+          "accuracy_ci95_pct": [
+            60.739730020774175,
+            78.53695062839081
+          ],
+          "up_precision_pct": 71.42857142857143,
+          "down_precision_pct": 69.64285714285714,
+          "up_signals": 42,
+          "down_signals": 56,
+          "net_expectancy_pct": -0.2374330636593694,
+          "profit_factor": 0.018719461784423172,
+          "max_drawdown_pct": 23.2684402386182,
+          "max_losing_streak": 35,
+          "cost_pct_round_trip": 0.3
+        },
+        "ema_macd": {
+          "total_points": 2945,
+          "signals": 1990,
+          "coverage_pct": 67.57215619694398,
+          "correct": 951,
+          "accuracy_pct": 47.788944723618094,
+          "accuracy_ci95_pct": [
+            45.6006194234172,
+            49.98579024924686
+          ],
+          "up_precision_pct": 47.51322751322751,
+          "down_precision_pct": 48.038277511961724,
+          "up_signals": 945,
+          "down_signals": 1045,
+          "net_expectancy_pct": -0.30315150919203865,
+          "profit_factor": 0.04970190188970604,
+          "max_drawdown_pct": 603.2715032921573,
+          "max_losing_streak": 146,
+          "cost_pct_round_trip": 0.3
+        }
+      },
+      "regimes": {
+        "Quiet": {
+          "total_points": 1168,
+          "signals": 79,
+          "coverage_pct": 6.763698630136987,
+          "correct": 33,
+          "accuracy_pct": 41.77215189873418,
+          "accuracy_ci95_pct": [
+            31.526455049064673,
+            52.780946063419876
+          ],
+          "up_precision_pct": 52.0,
+          "down_precision_pct": 37.03703703703704,
+          "up_signals": 25,
+          "down_signals": 54,
+          "net_expectancy_pct": -0.3931788400366505,
+          "profit_factor": 0.0,
+          "max_drawdown_pct": 31.06112836289538,
+          "max_losing_streak": 79,
+          "cost_pct_round_trip": 0.3
+        },
+        "Normal": {
+          "total_points": 1440,
+          "signals": 98,
+          "coverage_pct": 6.805555555555555,
+          "correct": 69,
+          "accuracy_pct": 70.40816326530613,
+          "accuracy_ci95_pct": [
+            60.739730020774175,
+            78.53695062839081
+          ],
+          "up_precision_pct": 71.42857142857143,
+          "down_precision_pct": 69.64285714285714,
+          "up_signals": 42,
+          "down_signals": 56,
+          "net_expectancy_pct": -0.2374330636593694,
+          "profit_factor": 0.018719461784423172,
+          "max_drawdown_pct": 23.2684402386182,
+          "max_losing_streak": 35,
+          "cost_pct_round_trip": 0.3
+        },
+        "Hot": {
+          "total_points": 337,
+          "signals": 24,
+          "coverage_pct": 7.121661721068249,
+          "correct": 20,
+          "accuracy_pct": 83.33333333333334,
+          "accuracy_ci95_pct": [
+            64.14652961213058,
+            93.32143199927108
+          ],
+          "up_precision_pct": 100.0,
+          "down_precision_pct": 73.33333333333333,
+          "up_signals": 9,
+          "down_signals": 15,
+          "net_expectancy_pct": -0.07038523327004302,
+          "profit_factor": 0.5642408879129726,
+          "max_drawdown_pct": 3.1915440339889427,
+          "max_losing_streak": 10,
+          "cost_pct_round_trip": 0.3
+        }
+      }
+    },
+    {
+      "offset_days": 28,
+      "candles": 3000,
+      "strategies": {
+        "always_up": {
+          "total_points": 2945,
+          "signals": 2945,
+          "coverage_pct": 100.0,
+          "correct": 1429,
+          "accuracy_pct": 48.52292020373514,
+          "accuracy_ci95_pct": [
+            46.7209504759627,
+            50.32873845951622
+          ],
+          "up_precision_pct": 48.52292020373514,
+          "down_precision_pct": null,
+          "up_signals": 2945,
+          "down_signals": 0,
+          "net_expectancy_pct": -0.25218543209049116,
+          "profit_factor": 0.13477148172069722,
+          "max_drawdown_pct": 774.9603344106864,
+          "max_losing_streak": 633,
+          "cost_pct_round_trip": 0.3
+        },
+        "always_down": {
+          "total_points": 2945,
+          "signals": 2945,
+          "coverage_pct": 100.0,
+          "correct": 1516,
+          "accuracy_pct": 51.47707979626486,
+          "accuracy_ci95_pct": [
+            49.67126154048377,
+            53.27904952403729
+          ],
+          "up_precision_pct": null,
+          "down_precision_pct": 51.47707979626486,
+          "up_signals": 0,
+          "down_signals": 2945,
+          "net_expectancy_pct": -0.3478145679095088,
+          "profit_factor": 0.007373840991662048,
+          "max_drawdown_pct": 1024.3139024935044,
+          "max_losing_streak": 778,
+          "cost_pct_round_trip": 0.3
+        },
+        "random_50": {
+          "total_points": 2945,
+          "signals": 2945,
+          "coverage_pct": 100.0,
+          "correct": 1479,
+          "accuracy_pct": 50.22071307300509,
+          "accuracy_ci95_pct": [
+            48.41576248419066,
+            52.02508859441595
+          ],
+          "up_precision_pct": 48.74405974202308,
+          "down_precision_pct": 51.6983695652174,
+          "up_signals": 1473,
+          "down_signals": 1472,
+          "net_expectancy_pct": -0.29964376754968386,
+          "profit_factor": 0.06548743298252883,
+          "max_drawdown_pct": 882.4508954338214,
+          "max_losing_streak": 461,
+          "cost_pct_round_trip": 0.3
+        },
+        "rsi": {
+          "total_points": 2945,
+          "signals": 299,
+          "coverage_pct": 10.152801358234296,
+          "correct": 139,
+          "accuracy_pct": 46.48829431438127,
+          "accuracy_ci95_pct": [
+            40.915145844428665,
+            52.1505360169801
+          ],
+          "up_precision_pct": 57.54716981132076,
+          "down_precision_pct": 40.41450777202073,
+          "up_signals": 106,
+          "down_signals": 193,
+          "net_expectancy_pct": -0.5262901435483469,
+          "profit_factor": 0.0048570055475935315,
+          "max_drawdown_pct": 157.36075292095575,
+          "max_losing_streak": 108,
+          "cost_pct_round_trip": 0.3
+        },
+        "rsi_normal": {
+          "total_points": 2945,
+          "signals": 36,
+          "coverage_pct": 1.2224108658743633,
+          "correct": 25,
+          "accuracy_pct": 69.44444444444444,
+          "accuracy_ci95_pct": [
+            53.143421320916275,
+            81.99572971719465
+          ],
+          "up_precision_pct": 68.75,
+          "down_precision_pct": 70.0,
+          "up_signals": 16,
+          "down_signals": 20,
+          "net_expectancy_pct": -0.24810461139849607,
+          "profit_factor": 0.016525151173249198,
+          "max_drawdown_pct": 8.931766010345857,
+          "max_losing_streak": 21,
+          "cost_pct_round_trip": 0.3
+        },
+        "ema_macd": {
+          "total_points": 2945,
+          "signals": 1864,
+          "coverage_pct": 63.293718166383705,
+          "correct": 948,
+          "accuracy_pct": 50.858369098712444,
+          "accuracy_ci95_pct": [
+            48.589391440334765,
+            53.123815932281836
+          ],
+          "up_precision_pct": 52.05327413984462,
+          "down_precision_pct": 49.74039460020768,
+          "up_signals": 901,
+          "down_signals": 963,
+          "net_expectancy_pct": -0.2520441372403218,
+          "profit_factor": 0.13819641782555236,
+          "max_drawdown_pct": 508.2948104959881,
+          "max_losing_streak": 714,
+          "cost_pct_round_trip": 0.3
+        }
+      },
+      "regimes": {
+        "Quiet": {
+          "total_points": 1985,
+          "signals": 193,
+          "coverage_pct": 9.722921914357682,
+          "correct": 88,
+          "accuracy_pct": 45.59585492227979,
+          "accuracy_ci95_pct": [
+            38.723406311915824,
+            52.640207883457514
+          ],
+          "up_precision_pct": 53.48837209302325,
+          "down_precision_pct": 39.25233644859813,
+          "up_signals": 86,
+          "down_signals": 107,
+          "net_expectancy_pct": -0.33074438629968084,
+          "profit_factor": 0.0,
+          "max_drawdown_pct": 63.83366655583841,
+          "max_losing_streak": 193,
+          "cost_pct_round_trip": 0.3
+        },
+        "Normal": {
+          "total_points": 535,
+          "signals": 36,
+          "coverage_pct": 6.728971962616822,
+          "correct": 25,
+          "accuracy_pct": 69.44444444444444,
+          "accuracy_ci95_pct": [
+            53.143421320916275,
+            81.99572971719465
+          ],
+          "up_precision_pct": 68.75,
+          "down_precision_pct": 70.0,
+          "up_signals": 16,
+          "down_signals": 20,
+          "net_expectancy_pct": -0.24810461139849607,
+          "profit_factor": 0.016525151173249198,
+          "max_drawdown_pct": 8.931766010345857,
+          "max_losing_streak": 21,
+          "cost_pct_round_trip": 0.3
+        },
+        "Hot": {
+          "total_points": 425,
+          "signals": 70,
+          "coverage_pct": 16.470588235294116,
+          "correct": 26,
+          "accuracy_pct": 37.142857142857146,
+          "accuracy_ci95_pct": [
+            26.770481600829648,
+            48.85301518147193
+          ],
+          "up_precision_pct": 100.0,
+          "down_precision_pct": 33.33333333333333,
+          "up_signals": 4,
+          "down_signals": 66,
+          "net_expectancy_pct": -1.208504576496735,
+          "profit_factor": 0.007251845867608112,
+          "max_drawdown_pct": 84.59532035477143,
+          "max_losing_streak": 33,
+          "cost_pct_round_trip": 0.3
+        }
+      }
+    },
+    {
+      "offset_days": 35,
+      "candles": 3000,
+      "strategies": {
+        "always_up": {
+          "total_points": 2945,
+          "signals": 2945,
+          "coverage_pct": 100.0,
+          "correct": 1492,
+          "accuracy_pct": 50.66213921901528,
+          "accuracy_ci95_pct": [
+            48.85675404827596,
+            52.465799187543816
+          ],
+          "up_precision_pct": 50.66213921901528,
+          "down_precision_pct": null,
+          "up_signals": 2945,
+          "down_signals": 0,
+          "net_expectancy_pct": -0.2966649959410938,
+          "profit_factor": 0.010960625246608072,
+          "max_drawdown_pct": 873.6784130465196,
+          "max_losing_streak": 785,
+          "cost_pct_round_trip": 0.3
+        },
+        "always_down": {
+          "total_points": 2945,
+          "signals": 2945,
+          "coverage_pct": 100.0,
+          "correct": 1453,
+          "accuracy_pct": 49.33786078098472,
+          "accuracy_ci95_pct": [
+            47.53420081245618,
+            51.14324595172404
+          ],
+          "up_precision_pct": null,
+          "down_precision_pct": 49.33786078098472,
+          "up_signals": 0,
+          "down_signals": 2945,
+          "net_expectancy_pct": -0.3033350040589062,
+          "profit_factor": 0.016304227761526385,
+          "max_drawdown_pct": 893.3215869534766,
+          "max_losing_streak": 1243,
+          "cost_pct_round_trip": 0.3
+        },
+        "random_50": {
+          "total_points": 2945,
+          "signals": 2945,
+          "coverage_pct": 100.0,
+          "correct": 1488,
+          "accuracy_pct": 50.526315789473685,
+          "accuracy_ci95_pct": [
+            48.721049371972484,
+            52.33021089239709
+          ],
+          "up_precision_pct": 51.18805159538356,
+          "down_precision_pct": 49.86413043478261,
+          "up_signals": 1473,
+          "down_signals": 1472,
+          "net_expectancy_pct": -0.299710619935014,
+          "profit_factor": 0.01346647894588806,
+          "max_drawdown_pct": 882.6477757086154,
+          "max_losing_streak": 786,
+          "cost_pct_round_trip": 0.3
+        },
+        "rsi": {
+          "total_points": 2945,
+          "signals": 230,
+          "coverage_pct": 7.809847198641766,
+          "correct": 132,
+          "accuracy_pct": 57.391304347826086,
+          "accuracy_ci95_pct": [
+            50.93049477954925,
+            63.60926204729422
+          ],
+          "up_precision_pct": 65.59139784946237,
+          "down_precision_pct": 51.82481751824818,
+          "up_signals": 93,
+          "down_signals": 137,
+          "net_expectancy_pct": -0.30426077728362555,
+          "profit_factor": 0.006276850430339223,
+          "max_drawdown_pct": 69.9799787752339,
+          "max_losing_streak": 110,
+          "cost_pct_round_trip": 0.3
+        },
+        "rsi_normal": {
+          "total_points": 2945,
+          "signals": 57,
+          "coverage_pct": 1.935483870967742,
+          "correct": 35,
+          "accuracy_pct": 61.40350877192983,
+          "accuracy_ci95_pct": [
+            48.4294964443229,
+            72.93746300447528
+          ],
+          "up_precision_pct": 71.42857142857143,
+          "down_precision_pct": 60.0,
+          "up_signals": 7,
+          "down_signals": 50,
+          "net_expectancy_pct": -0.29358686396972666,
+          "profit_factor": 0.004284759742892506,
+          "max_drawdown_pct": 16.73445124627442,
+          "max_losing_streak": 32,
+          "cost_pct_round_trip": 0.3
+        },
+        "ema_macd": {
+          "total_points": 2945,
+          "signals": 1994,
+          "coverage_pct": 67.70797962648557,
+          "correct": 870,
+          "accuracy_pct": 43.6308926780341,
+          "accuracy_ci95_pct": [
+            41.468436142614216,
+            45.81784321006319
+          ],
+          "up_precision_pct": 46.778989098116945,
+          "down_precision_pct": 40.40609137055838,
+          "up_signals": 1009,
+          "down_signals": 985,
+          "net_expectancy_pct": -0.31696579343280457,
+          "profit_factor": 0.01238292593503888,
+          "max_drawdown_pct": 632.0297921050101,
+          "max_losing_streak": 639,
+          "cost_pct_round_trip": 0.3
+        }
+      },
+      "regimes": {
+        "Quiet": {
+          "total_points": 1417,
+          "signals": 135,
+          "coverage_pct": 9.527170077628794,
+          "correct": 74,
+          "accuracy_pct": 54.81481481481482,
+          "accuracy_ci95_pct": [
+            46.40218181279213,
+            62.961006165450705
+          ],
+          "up_precision_pct": 64.17910447761194,
+          "down_precision_pct": 45.588235294117645,
+          "up_signals": 67,
+          "down_signals": 68,
+          "net_expectancy_pct": -0.32588053577097364,
+          "profit_factor": 0.0,
+          "max_drawdown_pct": 43.99387232908144,
+          "max_losing_streak": 135,
+          "cost_pct_round_trip": 0.3
+        },
+        "Normal": {
+          "total_points": 1062,
+          "signals": 57,
+          "coverage_pct": 5.367231638418079,
+          "correct": 35,
+          "accuracy_pct": 61.40350877192983,
+          "accuracy_ci95_pct": [
+            48.4294964443229,
+            72.93746300447528
+          ],
+          "up_precision_pct": 71.42857142857143,
+          "down_precision_pct": 60.0,
+          "up_signals": 7,
+          "down_signals": 50,
+          "net_expectancy_pct": -0.29358686396972666,
+          "profit_factor": 0.004284759742892506,
+          "max_drawdown_pct": 16.73445124627442,
+          "max_losing_streak": 32,
+          "cost_pct_round_trip": 0.3
+        },
+        "Hot": {
+          "total_points": 466,
+          "signals": 38,
+          "coverage_pct": 8.15450643776824,
+          "correct": 23,
+          "accuracy_pct": 60.526315789473685,
+          "accuracy_ci95_pct": [
+            44.71758699869596,
+            74.40214073638109
+          ],
+          "up_precision_pct": 68.42105263157895,
+          "down_precision_pct": 52.63157894736842,
+          "up_signals": 19,
+          "down_signals": 19,
+          "net_expectancy_pct": -0.24346461052310567,
+          "profit_factor": 0.03845659593573459,
+          "max_drawdown_pct": 9.251655199878014,
+          "max_losing_streak": 31,
+          "cost_pct_round_trip": 0.3
+        }
+      }
+    },
+    {
+      "offset_days": 42,
+      "candles": 3000,
+      "strategies": {
+        "always_up": {
+          "total_points": 2945,
+          "signals": 2945,
+          "coverage_pct": 100.0,
+          "correct": 1466,
+          "accuracy_pct": 49.77928692699491,
+          "accuracy_ci95_pct": [
+            47.97491140558405,
+            51.58423751580935
+          ],
+          "up_precision_pct": 49.77928692699491,
+          "down_precision_pct": null,
+          "up_signals": 2945,
+          "down_signals": 0,
+          "net_expectancy_pct": -0.2869663804975864,
+          "profit_factor": 0.04278795420599161,
+          "max_drawdown_pct": 845.1159905653915,
+          "max_losing_streak": 252,
+          "cost_pct_round_trip": 0.3
+        },
+        "always_down": {
+          "total_points": 2945,
+          "signals": 2945,
+          "coverage_pct": 100.0,
+          "correct": 1479,
+          "accuracy_pct": 50.22071307300509,
+          "accuracy_ci95_pct": [
+            48.41576248419066,
+            52.02508859441595
+          ],
+          "up_precision_pct": null,
+          "down_precision_pct": 50.22071307300509,
+          "up_signals": 0,
+          "down_signals": 2945,
+          "net_expectancy_pct": -0.3130336195024136,
+          "profit_factor": 0.01594223543283827,
+          "max_drawdown_pct": 921.8840094346084,
+          "max_losing_streak": 442,
+          "cost_pct_round_trip": 0.3
+        },
+        "random_50": {
+          "total_points": 2945,
+          "signals": 2945,
+          "coverage_pct": 100.0,
+          "correct": 1456,
+          "accuracy_pct": 49.439728353140914,
+          "accuracy_ci95_pct": [
+            47.63589078670983,
+            51.24502570605804
+          ],
+          "up_precision_pct": 49.219280380176514,
+          "down_precision_pct": 49.66032608695652,
+          "up_signals": 1473,
+          "down_signals": 1472,
+          "net_expectancy_pct": -0.3001697752762577,
+          "profit_factor": 0.029103367526742013,
+          "max_drawdown_pct": 883.9999881885794,
+          "max_losing_streak": 213,
+          "cost_pct_round_trip": 0.3
+        },
+        "rsi": {
+          "total_points": 2945,
+          "signals": 233,
+          "coverage_pct": 7.911714770797963,
+          "correct": 148,
+          "accuracy_pct": 63.519313304721024,
+          "accuracy_ci95_pct": [
+            57.16538796656979,
+            69.43466878021792
+          ],
+          "up_precision_pct": 80.61224489795919,
+          "down_precision_pct": 51.11111111111111,
+          "up_signals": 98,
+          "down_signals": 135,
+          "net_expectancy_pct": -0.26077544874857855,
+          "profit_factor": 0.05444760578442672,
+          "max_drawdown_pct": 60.760679558418836,
+          "max_losing_streak": 68,
+          "cost_pct_round_trip": 0.3
+        },
+        "rsi_normal": {
+          "total_points": 2945,
+          "signals": 112,
+          "coverage_pct": 3.8030560271646854,
+          "correct": 80,
+          "accuracy_pct": 71.42857142857143,
+          "accuracy_ci95_pct": [
+            62.46060903274925,
+            78.97528273670146
+          ],
+          "up_precision_pct": 80.64516129032258,
+          "down_precision_pct": 60.0,
+          "up_signals": 62,
+          "down_signals": 50,
+          "net_expectancy_pct": -0.22396515826827637,
+          "profit_factor": 0.06236065274890962,
+          "max_drawdown_pct": 25.084097726046945,
+          "max_losing_streak": 34,
+          "cost_pct_round_trip": 0.3
+        },
+        "ema_macd": {
+          "total_points": 2945,
+          "signals": 1981,
+          "coverage_pct": 67.26655348047538,
+          "correct": 891,
+          "accuracy_pct": 44.977284199899046,
+          "accuracy_ci95_pct": [
+            42.79841226819712,
+            47.1755987561587
+          ],
+          "up_precision_pct": 47.38493723849373,
+          "down_precision_pct": 42.73170731707317,
+          "up_signals": 956,
+          "down_signals": 1025,
+          "net_expectancy_pct": -0.3083920940520719,
+          "profit_factor": 0.03315040563750555,
+          "max_drawdown_pct": 610.9247383171542,
+          "max_losing_streak": 302,
+          "cost_pct_round_trip": 0.3
+        }
+      },
+      "regimes": {
+        "Quiet": {
+          "total_points": 1222,
+          "signals": 56,
+          "coverage_pct": 4.582651391162029,
+          "correct": 38,
+          "accuracy_pct": 67.85714285714286,
+          "accuracy_ci95_pct": [
+            54.822394156003895,
+            78.59917211227771
+          ],
+          "up_precision_pct": 80.0,
+          "down_precision_pct": 58.06451612903226,
+          "up_signals": 25,
+          "down_signals": 31,
+          "net_expectancy_pct": -0.26305341835249846,
+          "profit_factor": 0.0,
+          "max_drawdown_pct": 14.73099142773991,
+          "max_losing_streak": 56,
+          "cost_pct_round_trip": 0.3
+        },
+        "Normal": {
+          "total_points": 1305,
+          "signals": 112,
+          "coverage_pct": 8.582375478927203,
+          "correct": 80,
+          "accuracy_pct": 71.42857142857143,
+          "accuracy_ci95_pct": [
+            62.46060903274925,
+            78.97528273670146
+          ],
+          "up_precision_pct": 80.64516129032258,
+          "down_precision_pct": 60.0,
+          "up_signals": 62,
+          "down_signals": 50,
+          "net_expectancy_pct": -0.22396515826827637,
+          "profit_factor": 0.06236065274890962,
+          "max_drawdown_pct": 25.084097726046945,
+          "max_losing_streak": 34,
+          "cost_pct_round_trip": 0.3
+        },
+        "Hot": {
+          "total_points": 418,
+          "signals": 65,
+          "coverage_pct": 15.550239234449762,
+          "correct": 30,
+          "accuracy_pct": 46.15384615384615,
+          "accuracy_ci95_pct": [
+            34.59013714993668,
+            58.146812601376475
+          ],
+          "up_precision_pct": 81.81818181818183,
+          "down_precision_pct": 38.88888888888889,
+          "up_signals": 11,
+          "down_signals": 54,
+          "net_expectancy_pct": -0.3222398523789528,
+          "profit_factor": 0.08036842259603981,
+          "max_drawdown_pct": 20.94559040463194,
+          "max_losing_streak": 35,
+          "cost_pct_round_trip": 0.3
+        }
+      }
+    },
+    {
+      "offset_days": 49,
+      "candles": 3000,
+      "strategies": {
+        "always_up": {
+          "total_points": 2945,
+          "signals": 2945,
+          "coverage_pct": 100.0,
+          "correct": 1435,
+          "accuracy_pct": 48.72665534804754,
+          "accuracy_ci95_pct": [
+            46.924218137783626,
+            50.532410254870626
+          ],
+          "up_precision_pct": 48.72665534804754,
+          "down_precision_pct": null,
+          "up_signals": 2945,
+          "down_signals": 0,
+          "net_expectancy_pct": -0.3089326122743174,
+          "profit_factor": 0.06254648769219479,
+          "max_drawdown_pct": 909.806543147864,
+          "max_losing_streak": 540,
+          "cost_pct_round_trip": 0.3
+        },
+        "always_down": {
+          "total_points": 2945,
+          "signals": 2945,
+          "coverage_pct": 100.0,
+          "correct": 1510,
+          "accuracy_pct": 51.273344651952456,
+          "accuracy_ci95_pct": [
+            49.467589745129374,
+            53.075781862216374
+          ],
+          "up_precision_pct": null,
+          "down_precision_pct": 51.273344651952456,
+          "up_signals": 0,
+          "down_signals": 2945,
+          "net_expectancy_pct": -0.29106738772568264,
+          "profit_factor": 0.07104265438560341,
+          "max_drawdown_pct": 863.200555998444,
+          "max_losing_streak": 300,
+          "cost_pct_round_trip": 0.3
+        },
+        "random_50": {
+          "total_points": 2945,
+          "signals": 2945,
+          "coverage_pct": 100.0,
+          "correct": 1477,
+          "accuracy_pct": 50.1528013582343,
+          "accuracy_ci95_pct": [
+            48.34793009768193,
+            51.95727449519957
+          ],
+          "up_precision_pct": 48.87983706720978,
+          "down_precision_pct": 51.4266304347826,
+          "up_signals": 1473,
+          "down_signals": 1472,
+          "net_expectancy_pct": -0.29944133073434637,
+          "profit_factor": 0.06763965002051336,
+          "max_drawdown_pct": 881.8547190126478,
+          "max_losing_streak": 223,
+          "cost_pct_round_trip": 0.3
+        },
+        "rsi": {
+          "total_points": 2945,
+          "signals": 301,
+          "coverage_pct": 10.220713073005093,
+          "correct": 142,
+          "accuracy_pct": 47.176079734219265,
+          "accuracy_ci95_pct": [
+            41.60759149885662,
+            52.81574179948586
+          ],
+          "up_precision_pct": 41.340782122905026,
+          "down_precision_pct": 55.73770491803278,
+          "up_signals": 179,
+          "down_signals": 122,
+          "net_expectancy_pct": -0.38496841957840583,
+          "profit_factor": 0.039019086515210376,
+          "max_drawdown_pct": 118.07929472231542,
+          "max_losing_streak": 88,
+          "cost_pct_round_trip": 0.3
+        },
+        "rsi_normal": {
+          "total_points": 2945,
+          "signals": 156,
+          "coverage_pct": 5.297113752122241,
+          "correct": 59,
+          "accuracy_pct": 37.82051282051282,
+          "accuracy_ci95_pct": [
+            30.589602822212804,
+            45.63686137734475
+          ],
+          "up_precision_pct": 26.666666666666668,
+          "down_precision_pct": 48.148148148148145,
+          "up_signals": 75,
+          "down_signals": 81,
+          "net_expectancy_pct": -0.42898699451120503,
+          "profit_factor": 0.004149873003228103,
+          "max_drawdown_pct": 66.92197114374798,
+          "max_losing_streak": 50,
+          "cost_pct_round_trip": 0.3
+        },
+        "ema_macd": {
+          "total_points": 2945,
+          "signals": 1957,
+          "coverage_pct": 66.45161290322581,
+          "correct": 1036,
+          "accuracy_pct": 52.93817066939192,
+          "accuracy_ci95_pct": [
+            50.723111965899335,
+            55.14171668726673
+          ],
+          "up_precision_pct": 51.24056094929881,
+          "down_precision_pct": 54.46601941747573,
+          "up_signals": 927,
+          "down_signals": 1030,
+          "net_expectancy_pct": -0.26340290034837116,
+          "profit_factor": 0.11074357326104567,
+          "max_drawdown_pct": 518.0408072818841,
+          "max_losing_streak": 363,
+          "cost_pct_round_trip": 0.3
+        }
+      },
+      "regimes": {
+        "Quiet": {
+          "total_points": 1328,
+          "signals": 81,
+          "coverage_pct": 6.099397590361446,
+          "correct": 45,
+          "accuracy_pct": 55.55555555555556,
+          "accuracy_ci95_pct": [
+            44.72737929727803,
+            65.88062432358723
+          ],
+          "up_precision_pct": 49.122807017543856,
+          "down_precision_pct": 70.83333333333334,
+          "up_signals": 57,
+          "down_signals": 24,
+          "net_expectancy_pct": -0.30350669326756424,
+          "profit_factor": 0.017706305593491643,
+          "max_drawdown_pct": 24.5840421546727,
+          "max_losing_streak": 68,
+          "cost_pct_round_trip": 0.3
+        },
+        "Normal": {
+          "total_points": 1198,
+          "signals": 156,
+          "coverage_pct": 13.02170283806344,
+          "correct": 59,
+          "accuracy_pct": 37.82051282051282,
+          "accuracy_ci95_pct": [
+            30.589602822212804,
+            45.63686137734475
+          ],
+          "up_precision_pct": 26.666666666666668,
+          "down_precision_pct": 48.148148148148145,
+          "up_signals": 75,
+          "down_signals": 81,
+          "net_expectancy_pct": -0.42898699451120503,
+          "profit_factor": 0.004149873003228103,
+          "max_drawdown_pct": 66.92197114374798,
+          "max_losing_streak": 50,
+          "cost_pct_round_trip": 0.3
+        },
+        "Hot": {
+          "total_points": 419,
+          "signals": 64,
+          "coverage_pct": 15.274463007159905,
+          "correct": 38,
+          "accuracy_pct": 59.375,
+          "accuracy_ci95_pct": [
+            47.1449865045497,
+            70.54327556474111
+          ],
+          "up_precision_pct": 55.319148936170215,
+          "down_precision_pct": 70.58823529411765,
+          "up_signals": 47,
+          "down_signals": 17,
+          "net_expectancy_pct": -0.38077314054186684,
+          "profit_factor": 0.14047924253324945,
+          "max_drawdown_pct": 26.57328142389479,
+          "max_losing_streak": 22,
+          "cost_pct_round_trip": 0.3
+        }
+      }
+    },
+    {
+      "offset_days": 56,
+      "candles": 3000,
+      "strategies": {
+        "always_up": {
+          "total_points": 2945,
+          "signals": 2945,
+          "coverage_pct": 100.0,
+          "correct": 1448,
+          "accuracy_pct": 49.16808149405772,
+          "accuracy_ci95_pct": [
+            47.364734151428685,
+            50.97359639843877
+          ],
+          "up_precision_pct": 49.16808149405772,
+          "down_precision_pct": null,
+          "up_signals": 2945,
+          "down_signals": 0,
+          "net_expectancy_pct": -0.295476768741431,
+          "profit_factor": 0.03348729801733258,
+          "max_drawdown_pct": 870.1790839435138,
+          "max_losing_streak": 452,
+          "cost_pct_round_trip": 0.3
+        },
+        "always_down": {
+          "total_points": 2945,
+          "signals": 2945,
+          "coverage_pct": 100.0,
+          "correct": 1497,
+          "accuracy_pct": 50.83191850594228,
+          "accuracy_ci95_pct": [
+            49.026403601561235,
+            52.63526584857132
+          ],
+          "up_precision_pct": null,
+          "down_precision_pct": 50.83191850594228,
+          "up_signals": 0,
+          "down_signals": 2945,
+          "net_expectancy_pct": -0.304523231258569,
+          "profit_factor": 0.021950263616916477,
+          "max_drawdown_pct": 897.6804632858203,
+          "max_losing_streak": 438,
+          "cost_pct_round_trip": 0.3
+        },
+        "random_50": {
+          "total_points": 2945,
+          "signals": 2945,
+          "coverage_pct": 100.0,
+          "correct": 1460,
+          "accuracy_pct": 49.57555178268252,
+          "accuracy_ci95_pct": [
+            47.77148905845038,
+            51.38072040576771
+          ],
+          "up_precision_pct": 48.74405974202308,
+          "down_precision_pct": 50.40760869565217,
+          "up_signals": 1473,
+          "down_signals": 1472,
+          "net_expectancy_pct": -0.30011839501133536,
+          "profit_factor": 0.026553959538509066,
+          "max_drawdown_pct": 883.8486733083839,
+          "max_losing_streak": 356,
+          "cost_pct_round_trip": 0.3
+        },
+        "rsi": {
+          "total_points": 2945,
+          "signals": 215,
+          "coverage_pct": 7.30050933786078,
+          "correct": 111,
+          "accuracy_pct": 51.627906976744185,
+          "accuracy_ci95_pct": [
+            44.97815821654536,
+            58.22050236718277
+          ],
+          "up_precision_pct": 47.368421052631575,
+          "down_precision_pct": 55.00000000000001,
+          "up_signals": 95,
+          "down_signals": 120,
+          "net_expectancy_pct": -0.2800774958158457,
+          "profit_factor": 0.061633241173571725,
+          "max_drawdown_pct": 60.45418296202348,
+          "max_losing_streak": 84,
+          "cost_pct_round_trip": 0.3
+        },
+        "rsi_normal": {
+          "total_points": 2945,
+          "signals": 123,
+          "coverage_pct": 4.176570458404075,
+          "correct": 53,
+          "accuracy_pct": 43.08943089430895,
+          "accuracy_ci95_pct": [
+            34.67817606577312,
+            51.91928091994765
+          ],
+          "up_precision_pct": 41.17647058823529,
+          "down_precision_pct": 45.45454545454545,
+          "up_signals": 68,
+          "down_signals": 55,
+          "net_expectancy_pct": -0.31320056128143137,
+          "profit_factor": 0.04234625265947567,
+          "max_drawdown_pct": 38.56044648862195,
+          "max_losing_streak": 55,
+          "cost_pct_round_trip": 0.3
+        },
+        "ema_macd": {
+          "total_points": 2945,
+          "signals": 1981,
+          "coverage_pct": 67.26655348047538,
+          "correct": 1007,
+          "accuracy_pct": 50.8329126703685,
+          "accuracy_ci95_pct": [
+            48.631906778795766,
+            53.03069440812011
+          ],
+          "up_precision_pct": 50.15447991761071,
+          "down_precision_pct": 51.48514851485149,
+          "up_signals": 971,
+          "down_signals": 1010,
+          "net_expectancy_pct": -0.28911604406536207,
+          "profit_factor": 0.03558801060430532,
+          "max_drawdown_pct": 572.7388832934826,
+          "max_losing_streak": 301,
+          "cost_pct_round_trip": 0.3
+        }
+      },
+      "regimes": {
+        "Quiet": {
+          "total_points": 1079,
+          "signals": 60,
+          "coverage_pct": 5.560704355885079,
+          "correct": 36,
+          "accuracy_pct": 60.0,
+          "accuracy_ci95_pct": [
+            47.365824394206854,
+            71.4306969962345
+          ],
+          "up_precision_pct": 56.52173913043478,
+          "down_precision_pct": 62.16216216216216,
+          "up_signals": 23,
+          "down_signals": 37,
+          "net_expectancy_pct": -0.295683114266515,
+          "profit_factor": 0.005941069005573372,
+          "max_drawdown_pct": 17.740986855990894,
+          "max_losing_streak": 44,
+          "cost_pct_round_trip": 0.3
+        },
+        "Normal": {
+          "total_points": 1554,
+          "signals": 123,
+          "coverage_pct": 7.915057915057915,
+          "correct": 53,
+          "accuracy_pct": 43.08943089430895,
+          "accuracy_ci95_pct": [
+            34.67817606577312,
+            51.91928091994765
+          ],
+          "up_precision_pct": 41.17647058823529,
+          "down_precision_pct": 45.45454545454545,
+          "up_signals": 68,
+          "down_signals": 55,
+          "net_expectancy_pct": -0.31320056128143137,
+          "profit_factor": 0.04234625265947567,
+          "max_drawdown_pct": 38.56044648862195,
+          "max_losing_streak": 55,
+          "cost_pct_round_trip": 0.3
+        },
+        "Hot": {
+          "total_points": 312,
+          "signals": 32,
+          "coverage_pct": 10.256410256410255,
+          "correct": 22,
+          "accuracy_pct": 68.75,
+          "accuracy_ci95_pct": [
+            51.4330003019676,
+            82.04764788338126
+          ],
+          "up_precision_pct": 100.0,
+          "down_precision_pct": 64.28571428571429,
+          "up_signals": 4,
+          "down_signals": 28,
+          "net_expectancy_pct": -0.12350017833749567,
+          "profit_factor": 0.35187748365015753,
+          "max_drawdown_pct": 4.5179536978666155,
+          "max_losing_streak": 11,
+          "cost_pct_round_trip": 0.3
+        }
+      }
+    },
+    {
+      "offset_days": 63,
+      "candles": 3000,
+      "strategies": {
+        "always_up": {
+          "total_points": 2945,
+          "signals": 2945,
+          "coverage_pct": 100.0,
+          "correct": 1652,
+          "accuracy_pct": 56.09507640067912,
+          "accuracy_ci95_pct": [
+            54.295896780754596,
+            57.87837531307372
+          ],
+          "up_precision_pct": 56.09507640067912,
+          "down_precision_pct": null,
+          "up_signals": 2945,
+          "down_signals": 0,
+          "net_expectancy_pct": -0.25346901590557364,
+          "profit_factor": 0.11677145098027834,
+          "max_drawdown_pct": 746.4662518419156,
+          "max_losing_streak": 220,
+          "cost_pct_round_trip": 0.3
+        },
+        "always_down": {
+          "total_points": 2945,
+          "signals": 2945,
+          "coverage_pct": 100.0,
+          "correct": 1293,
+          "accuracy_pct": 43.90492359932088,
+          "accuracy_ci95_pct": [
+            42.121624686926296,
+            45.704103219245404
+          ],
+          "up_precision_pct": null,
+          "down_precision_pct": 43.90492359932088,
+          "up_signals": 0,
+          "down_signals": 2945,
+          "net_expectancy_pct": -0.34653098409442634,
+          "profit_factor": 0.029972246808422434,
+          "max_drawdown_pct": 1020.5337481580849,
+          "max_losing_streak": 469,
+          "cost_pct_round_trip": 0.3
+        },
+        "random_50": {
+          "total_points": 2945,
+          "signals": 2945,
+          "coverage_pct": 100.0,
+          "correct": 1474,
+          "accuracy_pct": 50.0509337860781,
+          "accuracy_ci95_pct": [
+            48.24618775225751,
+            51.85554711203631
+          ],
+          "up_precision_pct": 56.1439239646979,
+          "down_precision_pct": 43.953804347826086,
+          "up_signals": 1473,
+          "down_signals": 1472,
+          "net_expectancy_pct": -0.3000684414702816,
+          "profit_factor": 0.06882710950984144,
+          "max_drawdown_pct": 883.7015601299804,
+          "max_losing_streak": 300,
+          "cost_pct_round_trip": 0.3
+        },
+        "rsi": {
+          "total_points": 2945,
+          "signals": 314,
+          "coverage_pct": 10.66213921901528,
+          "correct": 175,
+          "accuracy_pct": 55.73248407643312,
+          "accuracy_ci95_pct": [
+            50.202069290329185,
+            61.12432725436477
+          ],
+          "up_precision_pct": 66.10169491525424,
+          "down_precision_pct": 49.48979591836735,
+          "up_signals": 118,
+          "down_signals": 196,
+          "net_expectancy_pct": -0.38666262619570546,
+          "profit_factor": 0.033992593476397895,
+          "max_drawdown_pct": 121.41206462545155,
+          "max_losing_streak": 61,
+          "cost_pct_round_trip": 0.3
+        },
+        "rsi_normal": {
+          "total_points": 2945,
+          "signals": 124,
+          "coverage_pct": 4.2105263157894735,
+          "correct": 85,
+          "accuracy_pct": 68.54838709677419,
+          "accuracy_ci95_pct": [
+            59.92277324539914,
+            76.05925451395304
+          ],
+          "up_precision_pct": 68.75,
+          "down_precision_pct": 68.33333333333333,
+          "up_signals": 64,
+          "down_signals": 60,
+          "net_expectancy_pct": -0.2701805282468608,
+          "profit_factor": 0.03486925240158552,
+          "max_drawdown_pct": 33.502385502610736,
+          "max_losing_streak": 62,
+          "cost_pct_round_trip": 0.3
+        },
+        "ema_macd": {
+          "total_points": 2945,
+          "signals": 1861,
+          "coverage_pct": 63.1918505942275,
+          "correct": 954,
+          "accuracy_pct": 51.26276195593766,
+          "accuracy_ci95_pct": [
+            48.9915140921164,
+            53.5288072048774
+          ],
+          "up_precision_pct": 55.4820415879017,
+          "down_precision_pct": 45.70361145703611,
+          "up_signals": 1058,
+          "down_signals": 803,
+          "net_expectancy_pct": -0.26719690122747297,
+          "profit_factor": 0.1195789725238585,
+          "max_drawdown_pct": 497.25343318432647,
+          "max_losing_streak": 215,
+          "cost_pct_round_trip": 0.3
+        }
+      },
+      "regimes": {
+        "Quiet": {
+          "total_points": 1497,
+          "signals": 107,
+          "coverage_pct": 7.147628590514363,
+          "correct": 55,
+          "accuracy_pct": 51.4018691588785,
+          "accuracy_ci95_pct": [
+            42.048422635928226,
+            60.658142408242895
+          ],
+          "up_precision_pct": 56.81818181818182,
+          "down_precision_pct": 47.61904761904761,
+          "up_signals": 44,
+          "down_signals": 63,
+          "net_expectancy_pct": -0.31119034122218503,
+          "profit_factor": 0.01093025565786848,
+          "max_drawdown_pct": 33.2973665107738,
+          "max_losing_streak": 51,
+          "cost_pct_round_trip": 0.3
+        },
+        "Normal": {
+          "total_points": 1069,
+          "signals": 124,
+          "coverage_pct": 11.599625818521982,
+          "correct": 85,
+          "accuracy_pct": 68.54838709677419,
+          "accuracy_ci95_pct": [
+            59.92277324539914,
+            76.05925451395304
+          ],
+          "up_precision_pct": 68.75,
+          "down_precision_pct": 68.33333333333333,
+          "up_signals": 64,
+          "down_signals": 60,
+          "net_expectancy_pct": -0.2701805282468608,
+          "profit_factor": 0.03486925240158552,
+          "max_drawdown_pct": 33.502385502610736,
+          "max_losing_streak": 62,
+          "cost_pct_round_trip": 0.3
+        },
+        "Hot": {
+          "total_points": 379,
+          "signals": 83,
+          "coverage_pct": 21.899736147757256,
+          "correct": 35,
+          "accuracy_pct": 42.168674698795186,
+          "accuracy_ci95_pct": [
+            32.12284435427638,
+            52.90737157910118
+          ],
+          "up_precision_pct": 90.0,
+          "down_precision_pct": 35.61643835616438,
+          "up_signals": 10,
+          "down_signals": 73,
+          "net_expectancy_pct": -0.6579796700249033,
+          "profit_factor": 0.047009844113603795,
+          "max_drawdown_pct": 56.125826539730625,
+          "max_losing_streak": 31,
+          "cost_pct_round_trip": 0.3
+        }
+      }
+    },
+    {
+      "offset_days": 70,
+      "candles": 3000,
+      "strategies": {
+        "always_up": {
+          "total_points": 2945,
+          "signals": 2945,
+          "coverage_pct": 100.0,
+          "correct": 1383,
+          "accuracy_pct": 46.960950764006796,
+          "accuracy_ci95_pct": [
+            45.163561541722345,
+            48.766258222079145
+          ],
+          "up_precision_pct": 46.960950764006796,
+          "down_precision_pct": null,
+          "up_signals": 2945,
+          "down_signals": 0,
+          "net_expectancy_pct": -0.3152113978133489,
+          "profit_factor": 0.05737560867146884,
+          "max_drawdown_pct": 928.297566560314,
+          "max_losing_streak": 218,
+          "cost_pct_round_trip": 0.3
+        },
+        "always_down": {
+          "total_points": 2945,
+          "signals": 2945,
+          "coverage_pct": 100.0,
+          "correct": 1562,
+          "accuracy_pct": 53.039049235993204,
+          "accuracy_ci95_pct": [
+            51.23374177792086,
+            54.836438458277655
+          ],
+          "up_precision_pct": null,
+          "down_precision_pct": 53.039049235993204,
+          "up_signals": 0,
+          "down_signals": 2945,
+          "net_expectancy_pct": -0.2847886021866511,
+          "profit_factor": 0.07114963487477018,
+          "max_drawdown_pct": 838.702433439686,
+          "max_losing_streak": 170,
+          "cost_pct_round_trip": 0.3
+        },
+        "random_50": {
+          "total_points": 2945,
+          "signals": 2945,
+          "coverage_pct": 100.0,
+          "correct": 1465,
+          "accuracy_pct": 49.745331069609506,
+          "accuracy_ci95_pct": [
+            47.94100560286082,
+            51.55032007567003
+          ],
+          "up_precision_pct": 46.70739986422268,
+          "down_precision_pct": 52.785326086956516,
+          "up_signals": 1473,
+          "down_signals": 1472,
+          "net_expectancy_pct": -0.29919004124486526,
+          "profit_factor": 0.06493192697219746,
+          "max_drawdown_pct": 881.1146714661271,
+          "max_losing_streak": 168,
+          "cost_pct_round_trip": 0.3
+        },
+        "rsi": {
+          "total_points": 2945,
+          "signals": 217,
+          "coverage_pct": 7.368421052631578,
+          "correct": 127,
+          "accuracy_pct": 58.525345622119815,
+          "accuracy_ci95_pct": [
+            51.87736324964403,
+            64.87672655952237
+          ],
+          "up_precision_pct": 54.36241610738255,
+          "down_precision_pct": 67.64705882352942,
+          "up_signals": 149,
+          "down_signals": 68,
+          "net_expectancy_pct": -0.2522813492063724,
+          "profit_factor": 0.10167929720062045,
+          "max_drawdown_pct": 55.44956294195253,
+          "max_losing_streak": 31,
+          "cost_pct_round_trip": 0.3
+        },
+        "rsi_normal": {
+          "total_points": 2945,
+          "signals": 109,
+          "coverage_pct": 3.701188455008489,
+          "correct": 56,
+          "accuracy_pct": 51.37614678899083,
+          "accuracy_ci95_pct": [
+            42.107140067453045,
+            60.55145392625141
+          ],
+          "up_precision_pct": 47.88732394366197,
+          "down_precision_pct": 57.89473684210527,
+          "up_signals": 71,
+          "down_signals": 38,
+          "net_expectancy_pct": -0.28672134994816456,
+          "profit_factor": 0.07108965964822493,
+          "max_drawdown_pct": 31.632418516035287,
+          "max_losing_streak": 22,
+          "cost_pct_round_trip": 0.3
+        },
+        "ema_macd": {
+          "total_points": 2945,
+          "signals": 1886,
+          "coverage_pct": 64.04074702886248,
+          "correct": 965,
+          "accuracy_pct": 51.16648992576882,
+          "accuracy_ci95_pct": [
+            48.91042242256565,
+            53.417815033949225
+          ],
+          "up_precision_pct": 47.18969555035129,
+          "down_precision_pct": 54.45736434108527,
+          "up_signals": 854,
+          "down_signals": 1032,
+          "net_expectancy_pct": -0.3114922592406505,
+          "profit_factor": 0.04697498622500755,
+          "max_drawdown_pct": 587.4744009278667,
+          "max_losing_streak": 168,
+          "cost_pct_round_trip": 0.3
+        }
+      },
+      "regimes": {
+        "Quiet": {
+          "total_points": 1215,
+          "signals": 64,
+          "coverage_pct": 5.267489711934156,
+          "correct": 44,
+          "accuracy_pct": 68.75,
+          "accuracy_ci95_pct": [
+            56.60743364084737,
+            78.76909049773427
+          ],
+          "up_precision_pct": 68.18181818181817,
+          "down_precision_pct": 70.0,
+          "up_signals": 44,
+          "down_signals": 20,
+          "net_expectancy_pct": -0.22555569428699285,
+          "profit_factor": 0.05107323104453565,
+          "max_drawdown_pct": 14.760283226851916,
+          "max_losing_streak": 18,
+          "cost_pct_round_trip": 0.3
+        },
+        "Normal": {
+          "total_points": 1354,
+          "signals": 109,
+          "coverage_pct": 8.050221565731167,
+          "correct": 56,
+          "accuracy_pct": 51.37614678899083,
+          "accuracy_ci95_pct": [
+            42.107140067453045,
+            60.55145392625141
+          ],
+          "up_precision_pct": 47.88732394366197,
+          "down_precision_pct": 57.89473684210527,
+          "up_signals": 71,
+          "down_signals": 38,
+          "net_expectancy_pct": -0.28672134994816456,
+          "profit_factor": 0.07108965964822493,
+          "max_drawdown_pct": 31.632418516035287,
+          "max_losing_streak": 22,
+          "cost_pct_round_trip": 0.3
+        },
+        "Hot": {
+          "total_points": 376,
+          "signals": 44,
+          "coverage_pct": 11.702127659574469,
+          "correct": 27,
+          "accuracy_pct": 61.36363636363637,
+          "accuracy_ci95_pct": [
+            46.623309846201664,
+            74.27900111329802
+          ],
+          "up_precision_pct": 50.0,
+          "down_precision_pct": 100.0,
+          "up_signals": 34,
+          "down_signals": 10,
+          "net_expectancy_pct": -0.2058377545242121,
+          "profit_factor": 0.2505473174668137,
+          "max_drawdown_pct": 11.525985794559734,
+          "max_losing_streak": 28,
+          "cost_pct_round_trip": 0.3
+        }
+      }
+    }
+  ],
+  "aggregate": {
+    "always_up": {
+      "total_points": 29450,
+      "signals": 29450,
+      "coverage_pct": 100.0,
+      "correct": 14589,
+      "accuracy_pct": 49.53820033955857,
+      "accuracy_ci95_pct": [
+        48.96725995025114,
+        50.10926119190098
+      ],
+      "up_precision_pct": 49.53820033955857,
+      "down_precision_pct": null,
+      "up_signals": 29450,
+      "down_signals": 0,
+      "net_expectancy_pct": -0.2928755103103047,
+      "profit_factor": 0.05576679865290208,
+      "max_drawdown_pct": 8625.183778638442,
+      "max_losing_streak": 806,
+      "cost_pct_round_trip": 0.3
+    },
+    "always_down": {
+      "total_points": 29450,
+      "signals": 29450,
+      "coverage_pct": 100.0,
+      "correct": 14861,
+      "accuracy_pct": 50.46179966044143,
+      "accuracy_ci95_pct": [
+        49.890738808099016,
+        51.032740049748845
+      ],
+      "up_precision_pct": null,
+      "down_precision_pct": 50.46179966044143,
+      "up_signals": 0,
+      "down_signals": 29450,
+      "net_expectancy_pct": -0.30712448968969525,
+      "profit_factor": 0.03605653944763865,
+      "max_drawdown_pct": 9044.81622136149,
+      "max_losing_streak": 1243,
+      "cost_pct_round_trip": 0.3
+    },
+    "random_50": {
+      "total_points": 29450,
+      "signals": 29450,
+      "coverage_pct": 100.0,
+      "correct": 14737,
+      "accuracy_pct": 50.04074702886248,
+      "accuracy_ci95_pct": [
+        49.46971693050684,
+        50.6117664981268
+      ],
+      "up_precision_pct": 49.579090291921254,
+      "down_precision_pct": 50.50271739130435,
+      "up_signals": 14730,
+      "down_signals": 14720,
+      "net_expectancy_pct": -0.2999851840026076,
+      "profit_factor": 0.04578399739356799,
+      "max_drawdown_pct": 8834.563668876712,
+      "max_losing_streak": 808,
+      "cost_pct_round_trip": 0.3
+    },
+    "rsi": {
+      "total_points": 29450,
+      "signals": 2480,
+      "coverage_pct": 8.421052631578947,
+      "correct": 1365,
+      "accuracy_pct": 55.04032258064516,
+      "accuracy_ci95_pct": [
+        53.07616309255283,
+        56.988890975307214
+      ],
+      "up_precision_pct": 56.34987384356602,
+      "down_precision_pct": 53.834237025561585,
+      "up_signals": 1189,
+      "down_signals": 1291,
+      "net_expectancy_pct": -0.3295857841774527,
+      "profit_factor": 0.044270356886559586,
+      "max_drawdown_pct": 818.0772549242535,
+      "max_losing_streak": 110,
+      "cost_pct_round_trip": 0.3
+    },
+    "rsi_normal": {
+      "total_points": 29450,
+      "signals": 1058,
+      "coverage_pct": 3.592529711375212,
+      "correct": 606,
+      "accuracy_pct": 57.27788279773157,
+      "accuracy_ci95_pct": [
+        54.27603105523371,
+        60.22707373930438
+      ],
+      "up_precision_pct": 53.125,
+      "down_precision_pct": 61.673151750972764,
+      "up_signals": 544,
+      "down_signals": 514,
+      "net_expectancy_pct": -0.2920977788977176,
+      "profit_factor": 0.029948568712646218,
+      "max_drawdown_pct": 309.41924144547045,
+      "max_losing_streak": 82,
+      "cost_pct_round_trip": 0.3
+    },
+    "ema_macd": {
+      "total_points": 29450,
+      "signals": 19317,
+      "coverage_pct": 65.59252971137522,
+      "correct": 9509,
+      "accuracy_pct": 49.22607030077134,
+      "accuracy_ci95_pct": [
+        48.52126976868923,
+        49.93117859670702
+      ],
+      "up_precision_pct": 49.32001699957501,
+      "down_precision_pct": 49.136799596163556,
+      "up_signals": 9412,
+      "down_signals": 9905,
+      "net_expectancy_pct": -0.2917975243747338,
+      "profit_factor": 0.06175091414273035,
+      "max_drawdown_pct": 5636.652778346714,
+      "max_losing_streak": 714,
+      "cost_pct_round_trip": 0.3
+    }
+  },
+  "promotion_gate": {
+    "minimum_window_signals": 50,
+    "required_positive_net_expectancy_after_costs": true,
+    "required_accuracy_ci95_lower_bound_above_50_pct": true,
+    "required_most_windows_above_50_pct": true,
+    "passed": false
+  },
+  "decision": "DO NOT PROMOTE: candidate fails robustness and/or cost-adjusted expectancy gate."
+}
